@@ -28,6 +28,7 @@ class Exp_NN_Forecast(Exp_Basic):
         return model
 
     def _get_data(self, flag):
+        #flag: train, vali, test
         data_set, data_loader = data_provider(self.args, flag)
         return data_set, data_loader
 
@@ -248,7 +249,7 @@ class Exp_NN_Forecast(Exp_Basic):
 #                     input = test_data.inverse_transform(input.squeeze(0)).reshape(shape)
                    
                 # selecting variable index to output images
-                si = 7
+                si = 1
                 gt = np.concatenate((input[0, :, si], true[0, :, si]), axis=0)
                 pd = np.concatenate((input[0, :, si], pred[0, :, si]), axis=0)
                 visual(gt, pd, os.path.join(folder_path, f'{i:04}.pdf'))

@@ -1,3 +1,6 @@
 nn_forecast_data_mean_996_37_NN_QBO_ftM_sl12_pl12_dm256_nh8_el2_dl1_df2048_fc1_floc1_ebtimeF_dtTrue_Exp_0  
 mse:72.78895568847656, mae:4.194879055023193
 
+nn_forecast_sir_iid_NN_size9000_sigma0.03_rho-0.5_dt0.01_dmodel256_0  
+mse:0.0019237179076299071, mae:0.03486872464418411
+

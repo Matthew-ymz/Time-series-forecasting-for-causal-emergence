@@ -27,9 +27,10 @@ if __name__ == '__main__':
                         help='model name, options: [Autoformer, Transformer, TimesNet]')
 
     # data loader
-    parser.add_argument('--data', type=str, required=True, default='ETTm1', help='dataset type')
+    parser.add_argument('--data', type=str, required=True, default='SIR', help='dataset type')
     parser.add_argument('--downsample', type=int, default=1, help='dataset downsampling interval')
-    parser.add_argument('--root_path', type=str, default='./data/ETT/', help='root path of the data file')
+    parser.add_argument('--use_cache', type=bool, default=True, help='dataset cache used status')
+    parser.add_argument('--root_path', type=str, default='./dataset/SIR/', help='root path of the data file')
     parser.add_argument('--data_path', type=str, default='ETTh1.csv', help='data file')
     parser.add_argument('--features', type=str, default='M',
                         help='forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate')
@@ -38,6 +39,15 @@ if __name__ == '__main__':
                         help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')
     parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
     parser.add_argument('--fold_loc', type=int, required=False, default=0, help='location of vali and test')
+    
+    # data sir
+    parser.add_argument('--size_list', type=int, nargs='+', required=True, default=9000, help='dataset size for sir. Its sum is the total number of the init points.')
+    parser.add_argument('--beta', type=float, required=True, default=1, help='dynamic param of sir')
+    parser.add_argument('--gamma', type=float, required=True, default=0.5, help='dynamic param of sir')
+    parser.add_argument('--steps', type=int, required=True, default=7, help='dynamic steps of sir')
+    parser.add_argument('--dt', type=float, required=True, default=0.01, help='dynamic dt for differential equations')
+    parser.add_argument('--sigma', type=float, required=True, default=0.03, help='noise strength')
+    parser.add_argument('--rho', type=float, required=True, default=-0.5, help='noise correlation param')
 
     # forecasting task
     parser.add_argument('--seq_len', type=int, default=96, help='input sequence length')
@@ -117,8 +127,6 @@ if __name__ == '__main__':
         Exp = Exp_Long_Term_Forecast
     elif args.task_name == 'nn_forecast':
         Exp = Exp_NN_Forecast
-    elif args.task_name == 'short_term_forecast':
-        Exp = Exp_Short_Term_Forecast
     elif args.task_name == 'imputation':
         Exp = Exp_Imputation
     elif args.task_name == 'anomaly_detection':
@@ -132,24 +140,36 @@ if __name__ == '__main__':
         for ii in range(args.itr):
             # setting record of experiments
             exp = Exp(args)  # set experiments
-            setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_eb{}_dt{}_{}_{}'.format(
+            if args.data == "SIR":
+                setting = '{}_{}_{}_size{}_sigma{}_rho{}_dt{}_dmodel{}_{}'.format(
                 args.task_name,
                 args.model_id,
                 args.model,
-                args.data,
-                args.features,
-                args.seq_len,
-                args.pred_len,
+                args.size_list[0],
+                args.sigma,
+                args.rho,
+                args.dt,
                 args.d_model,
-                args.n_heads,
-                args.e_layers,
-                args.d_layers,
-                args.d_ff,
-                args.factor,
-                args.fold_loc,
-                args.embed,
-                args.distil,
-                args.des, ii)
+                ii)
+            else:
+                setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_eb{}_dt{}_{}_{}'.format(
+                    args.task_name,
+                    args.model_id,
+                    args.model,
+                    args.data,
+                    args.features,
+                    args.seq_len,
+                    args.pred_len,
+                    args.d_model,
+                    args.n_heads,
+                    args.e_layers,
+                    args.d_layers,
+                    args.d_ff,
+                    args.factor,
+                    args.fold_loc,
+                    args.embed,
+                    args.distil,
+                    args.des, ii)
 
             print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
             exp.train(setting)
