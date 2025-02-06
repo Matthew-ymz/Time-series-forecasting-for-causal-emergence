@@ -2,6 +2,7 @@ from data_provider.data_factory import data_provider
 from exp.exp_basic import Exp_Basic
 from utils.tools import EarlyStopping, adjust_learning_rate, visual
 from utils.metrics import metric
+from utils.ei import EI
 import torch
 import torch.nn as nn
 from torch import optim
@@ -51,9 +52,9 @@ class Exp_NN_Forecast(Exp_Basic):
                 # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        outputs = self.model(batch_x)
+                        outputs,_ = self.model(batch_x)
                 else:
-                    outputs = self.model(batch_x)
+                    outputs,_ = self.model(batch_x)
                 f_dim = -1 if self.args.features == 'MS' else 0
                 outputs = outputs[:, -self.args.pred_len:, f_dim:]
                 batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
@@ -87,8 +88,11 @@ class Exp_NN_Forecast(Exp_Basic):
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
-
+        if self.args.EI:
+            EI_list = []
         for epoch in range(self.args.train_epochs):
+            if self.args.EI:
+                self.EI = EI()
             iter_count = 0
             train_loss = []
 
@@ -105,22 +109,27 @@ class Exp_NN_Forecast(Exp_Basic):
                 # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        outputs = self.model(batch_x)
+                        outputs,_ = self.model(batch_x, EI_bool=False)
                         f_dim = -1 if self.args.features == 'MS' else 0
                         outputs = outputs[:, -self.args.pred_len:, f_dim:]
                         batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
                         loss = criterion(outputs, batch_y)
                         train_loss.append(loss.item())
                 else:
-                    outputs = self.model(batch_x)
+                    outputs,_ = self.model(batch_x, EI_bool=False)
                     f_dim = -1 if self.args.features == 'MS' else 0
                     outputs = outputs[:, -self.args.pred_len:, f_dim:]
                     batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
                     loss = criterion(outputs, batch_y)
                     train_loss.append(loss.item())
 
-                if (i + 1) % 100 == 0:
+                if (i + 1) % 200 == 0:
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
+                    if self.args.EI:
+                        outputs,ei_items = self.model(batch_x, self.args.EI)
+                        ei_items['h_t1'] = batch_y
+                        d_EI, term1, term2 = self.EI(ei_items=ei_items)
+                        print("\titers: {0}, epoch: {1} | EI: {2:.7f}".format(i + 1, epoch + 1, d_EI))
                     speed = (time.time() - time_now) / iter_count
                     left_time = speed * ((self.args.train_epochs - epoch) * train_steps - i)
                     print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
@@ -136,11 +145,16 @@ class Exp_NN_Forecast(Exp_Basic):
                     model_optim.step()
 
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
+            
             train_loss = np.average(train_loss)
             vali_loss = self.vali(vali_data, vali_loader, criterion)
             test_loss = self.vali(test_data, test_loader, criterion)
-
-            print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
+            if self.args.EI:
+                EI_list.append(d_EI.cpu().item())
+                print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f} d_EI_avg: {5:.4f}".format(
+                epoch + 1, train_steps, train_loss, vali_loss, test_loss, d_EI))
+            else:
+                print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
                 epoch + 1, train_steps, train_loss, vali_loss, test_loss))
             early_stopping(vali_loss, self.model, path)
             if early_stopping.early_stop:
@@ -151,6 +165,13 @@ class Exp_NN_Forecast(Exp_Basic):
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
+
+        if self.args.EI:
+            folder_path = './results/outputs/' + setting + '/'
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+            path1 = folder_path + '/' + "EI.npy"
+            np.save(path1, EI_list)
 
         return self.model
 
@@ -199,10 +220,10 @@ class Exp_NN_Forecast(Exp_Basic):
             # encoder - decoder
             if self.args.use_amp:
                 with torch.cuda.amp.autocast():
-                    outputs = self.model(batch_x)
+                    outputs,_ = self.model(batch_x)
 
             else:
-                outputs = self.model(batch_x)
+                outputs,_ = self.model(batch_x)
 
             # s = torch.sum(outputs)
             # if self.args.use_amp:
@@ -231,12 +252,13 @@ class Exp_NN_Forecast(Exp_Basic):
                 print(f'elapse: {t-t0:.2}s')
                 t0 = t
                 if self.args.jacobian:
-                    fun = lambda x: self.model(x)
+                    fun = lambda x: self.model(x)[0]
                     jac = jacobian(fun, batch_x)
                     jac = jac.detach().cpu().numpy()[0,:,:,0,:,:].astype(np.float16)
                     np.save(jacobian_path + f'jac_{i:04}.npy', jac)
                     print(f'saving jacobian: jac_{i:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
                     mae, mse, rmse, mape, mspe, msed = metric(pred, true, cor=True)
+    
                     np.save(jacobian_path + f'msed_{i:04}.npy', msed)
 
                 if self.args.output_attention and attn is not None:

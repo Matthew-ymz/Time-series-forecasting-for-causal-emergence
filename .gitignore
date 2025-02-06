@@ -1,5 +1,6 @@
 *.nc
 *.npy
+*.pdf
 
 __pycache__/
 *.py[cod]

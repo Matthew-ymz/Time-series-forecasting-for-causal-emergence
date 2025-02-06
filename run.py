@@ -84,6 +84,7 @@ if __name__ == '__main__':
     parser.add_argument('--activation', type=str, default='gelu', help='activation')
     parser.add_argument('--output_attention', action='store_true', help='whether to output attention in ecoder')
     parser.add_argument('--jacobian', action='store_true', help='whether to output jacobian matrix')
+    parser.add_argument('--EI', action='store_true', help='whether to output EI')
     parser.add_argument('--channel_independence', type=int, default=0,
                         help='1: channel dependence 0: channel independence for FreTS model')
     # optimization
