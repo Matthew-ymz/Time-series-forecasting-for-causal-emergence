@@ -103,6 +103,7 @@ if __name__ == '__main__':
     # GPU
     parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')
     parser.add_argument('--gpu', type=int, default=0, help='gpu')
+    parser.add_argument('--gpu_type', type=str, default='cuda', help='cuda or mps')
     parser.add_argument('--use_multi_gpu', action='store_true', help='use multiple gpus', default=False)
     parser.add_argument('--devices', type=str, default='0,1,2,3', help='device ids of multile gpus')
 
@@ -115,6 +116,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args.use_gpu = True if (torch.cuda.is_available() or torch.backends.mps.is_available()) \
         and args.use_gpu else False
+    if torch.cuda.is_available():
+        args.gpu_type = 'cuda'
+    elif torch.backends.mps.is_available():
+        args.gpu_type = 'mps'
 
     if args.use_gpu and args.use_multi_gpu:
         args.devices = args.devices.replace(' ', '')

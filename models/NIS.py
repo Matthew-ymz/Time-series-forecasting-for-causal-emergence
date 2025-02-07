@@ -58,6 +58,7 @@ class Model(nn.Module):
         self.pi = torch.tensor(torch.pi)
         self.func = lambda x: (self.dynamics(x) + x)
         self.enc_embedding = DataEmbedding_NN()
+        self.gpu_type = configs.gpu_type
 
         nets = lambda: nn.Sequential(
             nn.Linear(self.input_size, self.hidden_units),
@@ -104,11 +105,16 @@ class Model(nn.Module):
     
     def decoding(self, h_t1, stdev, means):
         sz = self.input_size - self.latent_size
-        means_n = torch.zeros(sz, dtype=h_t1.dtype)
-        covs = torch.eye(sz, dtype=h_t1.dtype)
         if sz > 0:
-            noise = distributions.MultivariateNormal(means_n, covs).sample((h_t1.size(0),))
-            noise = noise.to(device=h_t1.device)
+            if self.gpu_type == 'cuda':
+                means_n = torch.zeros(sz, dtype=h_t1.dtype,device=h_t1.device)
+                covs = torch.eye(sz, dtype=h_t1.dtype,device=h_t1.device)
+                noise = distributions.MultivariateNormal(means_n, covs).sample((h_t1.size(0),))
+            elif self.gpu_type == 'mps':
+                means_n = torch.zeros(sz, dtype=h_t1.dtype)
+                covs = torch.eye(sz, dtype=h_t1.dtype)
+                noise = distributions.MultivariateNormal(means_n, covs).sample((h_t1.size(0),))
+                noise = noise.to(device=h_t1.device)
             h_t1 = torch.cat((h_t1, noise), dim=1)
         x_t1_hat, _ = self.flow.g(h_t1)
 
@@ -123,8 +129,12 @@ class Model(nn.Module):
         jacobian_matrix = jacobian(self.func, jac_in)
         diag_matrices = jacobian_matrix.permute(0, 2, 1, 3).diagonal(dim1=0, dim2=1)
         diag_matrices = diag_matrices.permute(2, 0, 1)
-        diag_matrices = diag_matrices.cpu()
-        det_list = torch.linalg.det(diag_matrices).to(device=x_enc.device)
+        
+        if self.gpu_type == 'cuda':
+            det_list = torch.linalg.det(diag_matrices)
+        elif self.gpu_type == 'mps':
+            diag_matrices = diag_matrices.cpu()
+            det_list = torch.linalg.det(diag_matrices).to(device=x_enc.device)
         mask = det_list == 0
         count = mask.sum().item()
         det_list[mask] = 1  # 避免在 log 中计算 0
