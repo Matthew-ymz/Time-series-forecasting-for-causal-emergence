@@ -1,6 +1,6 @@
 import os
 import torch
-from models import DLinear, iTransformer, Transformer, NN, nis_net
+from models import NIS, DLinear, iTransformer, Transformer, NN
 
 
 class Exp_Basic(object):
@@ -11,7 +11,7 @@ class Exp_Basic(object):
             'iTransformer': iTransformer,
             'Transformer': Transformer,
             'NN': NN,
-            'NIS': nis_net
+            'NIS': NIS
         }
         self.device = self._acquire_device()
         self.model = self._build_model().to(self.device)

@@ -68,6 +68,7 @@ if __name__ == '__main__':
     parser.add_argument('--dec_in', type=int, default=7, help='decoder input size')
     parser.add_argument('--c_out', type=int, default=7, help='output size')
     parser.add_argument('--c_in', type=int, default=7, help='input size for NN')
+    parser.add_argument('--latent_size', type=int, default=2, help='latent space size for NIS')
     parser.add_argument('--d_model', type=int, default=512, help='dimension of model')
     parser.add_argument('--n_heads', type=int, default=8, help='num of heads')
     parser.add_argument('--e_layers', type=int, default=2, help='num of encoder layers')
@@ -142,7 +143,7 @@ if __name__ == '__main__':
             # setting record of experiments
             exp = Exp(args)  # set experiments
             if args.data == "SIR":
-                setting = '{}_{}_{}_size{}_sigma{}_rho{}_dt{}_dmodel{}_{}'.format(
+                setting = '{}_{}_{}_samp{}_sigma{}_rho{}_dt{}_dmodel{}_{}'.format(
                 args.task_name,
                 args.model_id,
                 args.model,

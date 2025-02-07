@@ -127,7 +127,11 @@ class Exp_NN_Forecast(Exp_Basic):
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
                     if self.args.EI:
                         outputs,ei_items = self.model(batch_x, self.args.EI)
-                        ei_items['h_t1'] = batch_y
+                        if self.args.model == "NN":
+                            h_t1 = batch_y.reshape(-1,batch_y.size(1)*batch_y.size(2))
+                        else:
+                            h_t1, stdev, means = self.model.encoding(batch_y)
+                        ei_items['h_t1'] = h_t1
                         d_EI, term1, term2 = self.EI(ei_items=ei_items)
                         print("\titers: {0}, epoch: {1} | EI: {2:.7f}".format(i + 1, epoch + 1, d_EI))
                     speed = (time.time() - time_now) / iter_count

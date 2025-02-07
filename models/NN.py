@@ -76,8 +76,10 @@ class Model(nn.Module):
 
         if EI_bool:
             count, avg_log_jacobian = self.cal_EI_1(x_enc)
-            ei_items = {"h_t": x_enc,
-                    "h_t1_hat": result,
+            h_t = x_enc.reshape(-1,x_enc.size(1)*x_enc.size(2))
+            h_t1_hat = result.reshape(-1,result.size(1)*result.size(2))
+            ei_items = {"h_t": h_t,
+                    "h_t1_hat": h_t1_hat,
                     "avg_log_jacobian": avg_log_jacobian,
                     "count": count}
         else:

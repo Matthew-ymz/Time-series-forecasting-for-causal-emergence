@@ -25,9 +25,6 @@ class EI(Metric):
         h_t = ei_items["h_t"]
         h_t1 = ei_items["h_t1"]
         h_t1_hat = ei_items["h_t1_hat"]
-        h_t = h_t.reshape(-1,h_t.size(1)*h_t.size(2))
-        h_t1 = h_t1.reshape(-1,h_t1.size(1)*h_t1.size(2))
-        h_t1_hat = h_t1_hat.reshape(-1,h_t1_hat.size(1)*h_t1_hat.size(2))
         count = ei_items["count"]
         avg_log_jacobian = ei_items["avg_log_jacobian"]
         samples = h_t.size(0)
