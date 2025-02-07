@@ -25,10 +25,10 @@ python -u run.py \
   --c_out 4 \
   --des 'Exp' \
   --d_model 256 \
-  --batch_size 128 \
-  --learning_rate 0.001 \
+  --batch_size 64 \
+  --learning_rate 0.01 \
   --patience 5 \
-  --itr 1 \
+  --itr 2 \
   --train_epochs 10 \
   --fold_loc 1 \
   --EI \

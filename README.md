@@ -23,8 +23,8 @@ Prepare your dataset according to the required format.
 ### 3. Model Training & Evaluation
 Experiment scripts for benchmarks are provided in `./scripts/`. Example usage:
 ```bash
-# Long-term forecasting example
-bash ./scripts/long_term_forecast/QBO/NN.sh
+# Forecasting example
+bash scripts/long_term_forecast/SIR/NN.sh
 ```
 
 ### 4. Custom Model Development

@@ -41,8 +41,6 @@ class Model(nn.Module):
 
         super(Model, self).__init__()
         self.task_name = configs.task_name
-        self.seq_len = configs.seq_len
-        self.pred_len = configs.pred_len
         self.input_size = configs.c_in * configs.seq_len
         self.hidden_units = configs.d_model
         self.B = configs.batch_size
@@ -94,16 +92,16 @@ class Model(nn.Module):
         
     def encoding(self, x_enc):
         # Normalization from Non-stationary Transformer
-        means = x_enc.mean(1, keepdim=True).detach()
-        x_enc = x_enc - means
-        stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
-        x_enc = x_enc / stdev
+        # means = x_enc.mean(1, keepdim=True).detach()
+        # x_enc = x_enc - means
+        # stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
+        # x_enc = x_enc / stdev
         self.B, self.T, self.N = x_enc.shape
         x_enc = self.enc_embedding(x_enc)
         h, _ = self.flow.f(x_enc)
-        return h[:, :self.latent_size], stdev, means
+        return h[:, :self.latent_size] #stdev, means
     
-    def decoding(self, h_t1, stdev, means):
+    def decoding(self, h_t1):
         sz = self.input_size - self.latent_size
         if sz > 0:
             if self.gpu_type == 'cuda':
@@ -120,9 +118,9 @@ class Model(nn.Module):
 
         x_t1_hat = x_t1_hat.reshape(self.B, self.T, self.N)
         # De-Normalization from Non-stationary Transformer
-        x_t1_hat = x_t1_hat * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.T, 1))
-        x_t1_hat = x_t1_hat + (means[:, 0, :].unsqueeze(1).repeat(1, self.T, 1))
-        return x_t1_hat.reshape(self.B, self.T, self.N)
+        # x_t1_hat = x_t1_hat * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.T, 1))
+        # x_t1_hat = x_t1_hat + (means[:, 0, :].unsqueeze(1).repeat(1, self.T, 1))
+        return x_t1_hat #.reshape(self.B, self.T, self.N)
     
     def cal_EI_1(self, x_enc, num_samples=1000, L=1):
         jac_in = L * (2 * torch.rand(num_samples, self.latent_size, dtype=x_enc.dtype, device=x_enc.device) - 1)
@@ -142,14 +140,14 @@ class Model(nn.Module):
         return count, avg_log_jacobian
     
     def forward(self, x_t, EI_bool=False, L=1, num_samples=1000):
-        h_t, stdev, means = self.encoding(x_t)
+        h_t = self.encoding(x_t)
        
         h_t1_hat = self.dynamics(h_t) + h_t
         
         if self.is_normalized:
             h_t1_hat = torch.tanh(h_t1_hat)
         
-        x_t1_hat = self.decoding(h_t1_hat, stdev, means)
+        x_t1_hat = self.decoding(h_t1_hat)
 
         if EI_bool:
             count, avg_log_jacobian = self.cal_EI_1(h_t, num_samples, L)

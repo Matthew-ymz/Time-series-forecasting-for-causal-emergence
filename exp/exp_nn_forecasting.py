@@ -44,6 +44,7 @@ class Exp_NN_Forecast(Exp_Basic):
     def vali(self, vali_data, vali_loader, criterion):
         total_loss = []
         self.model.eval()
+        d_EI = 0
         with torch.no_grad():
             for i, (batch_x, batch_y) in enumerate(vali_loader):
                 batch_x = batch_x.float().to(self.device)
@@ -52,9 +53,11 @@ class Exp_NN_Forecast(Exp_Basic):
                 # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        outputs,_ = self.model(batch_x)
+                        outputs,ei_items = self.model(batch_x)
+                    
                 else:
-                    outputs,_ = self.model(batch_x)
+                    outputs,ei_items = self.model(batch_x)
+
                 f_dim = -1 if self.args.features == 'MS' else 0
                 outputs = outputs[:, -self.args.pred_len:, f_dim:]
                 batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
@@ -65,9 +68,22 @@ class Exp_NN_Forecast(Exp_Basic):
                 loss = criterion(pred, true)
 
                 total_loss.append(loss)
+
+            x = torch.from_numpy(vali_data.sir_input).float().to(device=self.device)
+            y = torch.from_numpy(vali_data.sir_output).float().to(device=self.device)
+            if self.args.EI:
+                outputs,ei_items = self.model(x, self.args.EI)
+                if self.args.model == "NN":
+                    h_t1 = y.reshape(-1,y.size(1)*y.size(2))
+                else:
+                    h_t1 = self.model.encoding(y)
+                ei_items['h_t1'] = h_t1
+                d_EI, term1, term2 = self.EI(ei_items=ei_items)
+                print("term1:",term1.item())
+                print("term2:",term2.item())
         total_loss = np.average(total_loss)
         self.model.train()
-        return total_loss
+        return total_loss, d_EI
 
     def train(self, setting):
         train_data, train_loader = self._get_data(flag='train')
@@ -125,15 +141,7 @@ class Exp_NN_Forecast(Exp_Basic):
 
                 if (i + 1) % 200 == 0:
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
-                    if self.args.EI:
-                        outputs,ei_items = self.model(batch_x, self.args.EI)
-                        if self.args.model == "NN":
-                            h_t1 = batch_y.reshape(-1,batch_y.size(1)*batch_y.size(2))
-                        else:
-                            h_t1, stdev, means = self.model.encoding(batch_y)
-                        ei_items['h_t1'] = h_t1
-                        d_EI, term1, term2 = self.EI(ei_items=ei_items)
-                        print("\titers: {0}, epoch: {1} | EI: {2:.7f}".format(i + 1, epoch + 1, d_EI))
+                    outputs,ei_items = self.model(batch_x)
                     speed = (time.time() - time_now) / iter_count
                     left_time = speed * ((self.args.train_epochs - epoch) * train_steps - i)
                     print('\tspeed: {:.4f}s/iter; left time: {:.4f}s'.format(speed, left_time))
@@ -151,11 +159,11 @@ class Exp_NN_Forecast(Exp_Basic):
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             
             train_loss = np.average(train_loss)
-            vali_loss = self.vali(vali_data, vali_loader, criterion)
-            test_loss = self.vali(test_data, test_loader, criterion)
+            vali_loss, d_EI = self.vali(vali_data, vali_loader, criterion)
+            test_loss, d_EI = self.vali(test_data, test_loader, criterion)
             if self.args.EI:
                 EI_list.append(d_EI.cpu().item())
-                print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f} d_EI_avg: {5:.4f}".format(
+                print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f} d_EI: {5:.4f}".format(
                 epoch + 1, train_steps, train_loss, vali_loss, test_loss, d_EI))
             else:
                 print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(

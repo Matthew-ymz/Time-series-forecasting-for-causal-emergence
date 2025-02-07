@@ -30,8 +30,8 @@ class SIRModel(Dataset):
             self.size_list = size_list
             self.steps = steps
         else:
-            self.size_list = [100]
-            self.steps = 10
+            self.size_list = [1000]
+            self.steps = 2
         self.path = path+flag+"_"+str(self.size_list)
         self.beta, self.gamma = beta, gamma
         self.sigma, self.rho = sigma, rho

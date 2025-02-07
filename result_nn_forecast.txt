@@ -49,3 +49,21 @@ mse:0.001820094883441925, mae:0.03410640358924866
 nn_forecast_sir_iid_NIS_samp9000_sigma0.03_rho-0.5_dt0.01_dmodel64_0  
 mse:0.0019232069607824087, mae:0.034855227917432785
 
+nn_forecast_sir_iid_NIS_samp9000_sigma0.03_rho-0.5_dt0.01_dmodel64_0  
+mse:0.00127367302775383, mae:0.02834613062441349
+
+nn_forecast_sir_iid_NIS_samp9000_sigma0.03_rho-0.5_dt0.01_dmodel64_1  
+mse:0.0012296600034460425, mae:0.027996979653835297
+
+nn_forecast_sir_iid_NIS_samp9000_sigma0.03_rho-0.5_dt0.01_dmodel64_2  
+mse:0.0013135940534994006, mae:0.028990140184760094
+
+nn_forecast_sir_iid_NIS_samp9000_sigma0.03_rho-0.5_dt0.01_dmodel64_3  
+mse:0.0012420570710673928, mae:0.028131434693932533
+
+nn_forecast_sir_iid_NN_samp9000_sigma0.03_rho-0.5_dt0.01_dmodel256_0  
+mse:0.0011465003481134772, mae:0.02686530351638794
+
+nn_forecast_sir_iid_NN_samp9000_sigma0.03_rho-0.5_dt0.01_dmodel256_1  
+mse:0.0011049702297896147, mae:0.026543617248535156
+

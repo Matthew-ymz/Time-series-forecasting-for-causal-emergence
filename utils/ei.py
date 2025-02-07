@@ -66,14 +66,14 @@ class EI(Metric):
         #EI = max(term1 + term2, 0)
         d_EI = (term1 + term2) / output_size
 
-        self.ei_sum += d_EI
-        self.ei_term1 += term1
-        self.ei_term2 += term2
-        self.n += 1
+        self.ei_sum = d_EI
+        self.ei_term1 = term1
+        self.ei_term2 = term2
+        #self.n += 1
         return d_EI, term1, term2
 
     def compute(self):
-        return self.ei_sum / self.n, self.ei_term1 / self.n, self.ei_term2 / self.n
+        return self.ei_sum, self.ei_term1, self.ei_term2
 
 
 if __name__ == '__main__':

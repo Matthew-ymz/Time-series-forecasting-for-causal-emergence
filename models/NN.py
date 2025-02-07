@@ -47,10 +47,10 @@ class Model(nn.Module):
 
     def forecast(self, x_enc):
         # Normalization from Non-stationary Transformer
-        means = x_enc.mean(1, keepdim=True).detach()
-        x_enc = x_enc - means
-        stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
-        x_enc = x_enc / stdev
+        # means = x_enc.mean(1, keepdim=True).detach()
+        # x_enc = x_enc - means
+        # stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
+        # x_enc = x_enc / stdev
 
         B, T, N = x_enc.shape
 
@@ -65,9 +65,9 @@ class Model(nn.Module):
         dec_out = self.projection(enc_out) 
         dec_out = dec_out.reshape(B, self.pred_len, N)
         # De-Normalization from Non-stationary Transformer
-        dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
-        dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
-        return dec_out.reshape(B, self.pred_len, N)
+        # dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
+        # dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
+        return dec_out  #.reshape(B, self.pred_len, N)
 
     def forward(self, x_enc, EI_bool=False):
         if self.task_name == 'nn_forecast':
