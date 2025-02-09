@@ -3,7 +3,7 @@
 This repository contains time series machine learning implementations from Zhang Jiang's research group, supporting NN and iTransformer models. The code framework is adapted from the following research:
 
 > Wu H, Hu T, Liu Y, et al. TimesNet: Temporal 2D-Variation Modeling for General Time Series Analysis. *The Eleventh International Conference on Learning Representations*, 2022.  
-> [[Paper]](https://arxiv.org/abs/2210.02186) | [[Official Implementation]](https://github.com/thuml/TimesNet)
+> [[Paper]](https://arxiv.org/abs/2210.02186) | [[Official Implementation]](https://github.com/thuml/Time-Series-Library)
 
 For comprehensive benchmarks and technical details, please refer to the original TimesNet publication.
 

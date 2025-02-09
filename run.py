@@ -3,6 +3,7 @@ import os
 import torch
 from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast
 from exp.exp_nn_forecasting import Exp_NN_Forecast
+from exp.exp_maxei import Exp_MaxEI
 from exp.exp_imputation import Exp_Imputation
 from exp.exp_anomaly_detection import Exp_Anomaly_Detection
 from exp.exp_classification import Exp_Classification
@@ -48,6 +49,10 @@ if __name__ == '__main__':
     parser.add_argument('--dt', type=float, required=True, default=0.01, help='dynamic dt for differential equations')
     parser.add_argument('--sigma', type=float, required=True, default=0.03, help='noise strength')
     parser.add_argument('--rho', type=float, required=True, default=-0.5, help='noise correlation param')
+
+    #max EI
+    parser.add_argument('--first_stage', type=int, default=2, help='len(epoch) of first stage for maxmize EI')
+    parser.add_argument('--lambdas', type=float, required=True, default=1, help='balance param for two losses in maxmizing EI')
 
     # forecasting task
     parser.add_argument('--seq_len', type=int, default=96, help='input sequence length')
@@ -140,22 +145,24 @@ if __name__ == '__main__':
         Exp = Exp_Anomaly_Detection
     elif args.task_name == 'classification':
         Exp = Exp_Classification
+    elif args.task_name == 'maxei':
+        Exp = Exp_MaxEI
     else:
-        Exp = Exp_Long_Term_Forecast
+        Exp = Exp_NN_Forecast
 
     if args.is_training:
         for ii in range(args.itr):
             # setting record of experiments
             exp = Exp(args)  # set experiments
             if args.data == "SIR":
-                setting = '{}_{}_{}_samp{}_sigma{}_rho{}_dt{}_dmodel{}_{}'.format(
+                setting = '{}_{}_{}_samp{}_sigma{}_rho{}_lam{}_dmodel{}_{}'.format(
                 args.task_name,
                 args.model_id,
                 args.model,
                 args.size_list[0],
                 args.sigma,
                 args.rho,
-                args.dt,
+                args.lambdas,
                 args.d_model,
                 ii)
             else:

@@ -1,12 +1,12 @@
 #export CUDA_VISIBLE_DEVICES=0
 
-model_name=NIS
+model_name=NISp
 
 python -u run.py \
-  --task_name nn_forecast \
+  --task_name maxei \
   --is_training 1 \
   --root_path ./dataset/SIR/ \
-  --model_id sir_iid \
+  --model_id sir_iid_maxei \
   --model $model_name \
   --data SIR \
   --size_list 9000 \
@@ -27,9 +27,11 @@ python -u run.py \
   --d_model 64 \
   --batch_size 64 \
   --learning_rate 0.01 \
-  --patience 5 \
-  --itr 5 \
-  --train_epochs 15 \
+  --patience 3 \
+  --itr 1 \
+  --train_epochs 8 \
   --fold_loc 1 \
   --EI \
   --latent_size 2 \
+  --lambdas 3 \
+  --first_stage 1 \

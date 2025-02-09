@@ -1,28 +1,17 @@
 import torch
 from torch import nn
-from torch import distributions
-from torch.autograd.functional import jacobian
-from layers.Embed import DataEmbedding_NN
-from NIS import Model
+from models.NIS import Model
 
 
-class NISPNet(Model):
-    def __init__(self, 
-                 input_size: int = 4, 
-                 latent_size: int = 2, 
-                 output_size: int = 4, 
-                 hidden_units: int = 64, 
-                 hidden_units_dyn: int = 64,
-                 is_normalized: bool = True
-                ) -> None:
-        super().__init__(input_size, latent_size, output_size, hidden_units, is_normalized)
-        
+class Modelp(Model):
+    def __init__(self, configs):
+        super().__init__(configs)
         self.inv_dynamics = nn.Sequential(
-            nn.Linear(latent_size, hidden_units_dyn), 
+            nn.Linear(self.latent_size, self.hidden_units), 
             nn.LeakyReLU(), 
-            nn.Linear(hidden_units_dyn, hidden_units_dyn), 
+            nn.Linear(self.hidden_units, self.hidden_units), 
             nn.LeakyReLU(), 
-            nn.Linear(hidden_units_dyn, latent_size)
+            nn.Linear(self.hidden_units, self.latent_size)
         )
 
         
