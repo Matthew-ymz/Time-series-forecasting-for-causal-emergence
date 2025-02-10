@@ -26,6 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_id', type=str, required=True, default='test', help='model id')
     parser.add_argument('--model', type=str, required=True, default='Autoformer',
                         help='model name, options: [Autoformer, Transformer, TimesNet]')
+    parser.add_argument('--prints', type=int, default=100, help='time steps for print during training')
 
     # data loader
     parser.add_argument('--data', type=str, required=True, default='SIR', help='dataset type')

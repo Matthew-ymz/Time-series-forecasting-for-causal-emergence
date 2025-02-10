@@ -38,7 +38,7 @@ class Exp_NN_Forecast(Exp_Basic):
         return model_optim
 
     def _select_criterion(self):
-        criterion = nn.MSELoss()
+        criterion = nn.L1Loss()
         return criterion
 
     def vali(self, vali_data, vali_loader, criterion):
@@ -139,7 +139,7 @@ class Exp_NN_Forecast(Exp_Basic):
                     loss = criterion(outputs, batch_y)
                     train_loss.append(loss.item())
 
-                if (i + 1) % 200 == 0:
+                if (i + 1) % self.args.prints == 0:
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
                     outputs,ei_items = self.model(batch_x)
                     speed = (time.time() - time_now) / iter_count
