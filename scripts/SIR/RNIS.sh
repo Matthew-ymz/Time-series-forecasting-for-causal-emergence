@@ -1,6 +1,6 @@
 #export CUDA_VISIBLE_DEVICES=0
 
-model_name=NISp
+model_name=RNIS
 
 python -u run.py \
   --task_name maxei \
