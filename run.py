@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     #max EI
     parser.add_argument('--first_stage', type=int, default=2, help='len(epoch) of first stage for maxmize EI')
-    parser.add_argument('--lambdas', type=float, required=True, default=1, help='balance param for two losses in maxmizing EI')
+    parser.add_argument('--lambdas', type=float, default=1, help='balance param for two losses in maxmizing EI')
 
     # forecasting task
     parser.add_argument('--seq_len', type=int, default=96, help='input sequence length')
