@@ -85,7 +85,7 @@ class Exp_MaxEI(Exp_NN_Forecast):
 
         model_optim = self._select_optimizer()
         criterion = self._select_criterion()
-        criterion2 = nn.MSELoss(reduction='none')
+        criterion2 = nn.L1Loss(reduction='none')#nn.MSELoss(reduction='none')
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
@@ -121,7 +121,7 @@ class Exp_MaxEI(Exp_NN_Forecast):
                         loss = self.model_step(idx, batch_x, batch_y, criterion2, stage_flag=2)
 
                 train_loss.append(loss.item())
-                if (i + 1) % 200 == 0:
+                if (i + 1) % self.args.prints == 0:
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
                     outputs,ei_items = self.model(batch_x)
                     speed = (time.time() - time_now) / iter_count
