@@ -28,9 +28,9 @@ python -u run.py \
   --d_model 64 \
   --batch_size 64 \
   --learning_rate 0.002 \
-  --patience 10 \
+  --patience 30 \
   --itr 1 \
-  --train_epochs 20 \
+  --train_epochs 30 \
   --fold_loc 1 \
   --EI \
   --latent_size 2 \

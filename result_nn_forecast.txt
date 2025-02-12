@@ -100,3 +100,12 @@ mse:0.0017969412729144096, mae:0.033791977912187576
 maxei_sir_iid_maxei_RNIS_samp4000_sigma0.03_rho-0.5_lam1.0_dmodel64_0  
 mse:0.0017846778500825167, mae:0.03393535688519478
 
+maxei_sir_iid_maxei_RNIS_samp4000_sigma0.03_rho-0.5_lam0.1_dmodel64_0  
+mse:0.0017166859470307827, mae:0.033203255385160446
+
+nn_forecast_sir_iid_NISp_samp4000_sigma0.03_rho-0.5_lam1_dmodel64_0  
+mse:0.001665217918343842, mae:0.03261709585785866
+
+maxei_sir_iid_maxei_NISp_samp4000_sigma0.03_rho-0.5_lam0.1_dmodel64_0  
+mse:0.0018089256482198834, mae:0.03389711305499077
+
