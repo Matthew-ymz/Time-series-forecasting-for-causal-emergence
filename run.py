@@ -156,16 +156,28 @@ if __name__ == '__main__':
             # setting record of experiments
             exp = Exp(args)  # set experiments
             if args.data == "SIR":
-                setting = '{}_{}_{}_samp{}_sigma{}_rho{}_lam{}_dmodel{}_{}'.format(
-                args.task_name,
-                args.model_id,
-                args.model,
-                args.size_list[0],
-                args.sigma,
-                args.rho,
-                args.lambdas,
-                args.d_model,
-                ii)
+                if args.model_id == "sir_iid_noise":
+                    setting = '{}_{}_{}_samp{}_sigma{}_ls{}_lam{}_dmodel{}_{}'.format(
+                    args.task_name,
+                    args.model_id,
+                    args.model,
+                    sum(args.size_list),
+                    args.sigma,
+                    args.latent_size,
+                    args.lambdas,
+                    args.d_model,
+                    ii)
+                else:
+                    setting = '{}_{}_{}_samp{}_sigma{}_rho{}_lam{}_dmodel{}_{}'.format(
+                    args.task_name,
+                    args.model_id,
+                    args.model,
+                    args.size_list[0],
+                    args.sigma,
+                    args.rho,
+                    args.lambdas,
+                    args.d_model,
+                    ii)
             else:
                 setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_eb{}_dt{}_{}_{}'.format(
                     args.task_name,

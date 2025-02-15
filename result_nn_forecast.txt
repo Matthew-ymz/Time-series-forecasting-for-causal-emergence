@@ -109,3 +109,27 @@ mse:0.001665217918343842, mae:0.03261709585785866
 maxei_sir_iid_maxei_NISp_samp4000_sigma0.03_rho-0.5_lam0.1_dmodel64_0  
 mse:0.0018089256482198834, mae:0.03389711305499077
 
+maxei_sir_iid_noise_NISp_samp4000_sigma0.0001_ls2_lam1.0_dmodel64_0  
+mse:0.00021881172142457217, mae:0.010568203404545784
+
+maxei_sir_iid_noise_NISp_samp4000_sigma0.001_ls2_lam1.0_dmodel64_0  
+mse:0.00017674262926448137, mae:0.009870965033769608
+
+maxei_sir_iid_noise_NISp_samp4000_sigma0.01_ls2_lam1.0_dmodel64_0  
+mse:0.0004976317868568003, mae:0.017167942598462105
+
+maxei_sir_iid_noise_NISp_samp4000_sigma0.1_ls2_lam1.0_dmodel64_0  
+mse:0.014851386658847332, mae:0.09799488633871078
+
+maxei_sir_iid_noise_NISp_samp4000_sigma0.0001_ls4_lam1.0_dmodel64_0  
+mse:1.4470506357611157e-06, mae:0.0007789705414324999
+
+maxei_sir_iid_noise_NISp_samp4000_sigma0.001_ls4_lam1.0_dmodel64_0  
+mse:3.2518109946977347e-06, mae:0.0014419294893741608
+
+maxei_sir_iid_noise_NISp_samp4000_sigma0.01_ls4_lam1.0_dmodel64_0  
+mse:0.00020197579578962177, mae:0.01142516266554594
+
+maxei_sir_iid_noise_NISp_samp4000_sigma0.1_ls4_lam1.0_dmodel64_0  
+mse:0.012752813287079334, mae:0.09062791615724564
+

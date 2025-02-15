@@ -1,0 +1,3 @@
+for sigma in 0.0001 0.001 0.01 0.1; do
+    scripts/SIR/NISp_noise.sh $sigma 4
+done
