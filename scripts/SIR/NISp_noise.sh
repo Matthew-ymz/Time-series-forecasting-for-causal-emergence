@@ -1,5 +1,5 @@
 echo "====== 本次运行参数 ======"
-echo "sigma: $sigma"
+echo "sigma: $1"
 
 model_name=NISp
 sigma=$1
@@ -11,9 +11,9 @@ python -u run.py \
   --root_path ./dataset/SIR/ \
   --model_id sir_iid_noise \
   --model $model_name \
-  --prints 20 \
+  --prints 100 \
   --data SIR \
-  --size_list 4000 \
+  --size_list 20000 \
   --steps 2 \
   --sigma $sigma \
   --rho -0.5 \
@@ -31,11 +31,11 @@ python -u run.py \
   --d_model 64 \
   --batch_size 64 \
   --learning_rate 0.002 \
-  --patience 5 \
-  --itr 1 \
-  --train_epochs 20 \
+  --patience 12 \
+  --itr 5 \
+  --train_epochs 12 \
   --fold_loc 1 \
   --EI \
   --latent_size $latent_size \
-  --lambdas 1 \
+  --lambdas 3 \
   --first_stage 2 \

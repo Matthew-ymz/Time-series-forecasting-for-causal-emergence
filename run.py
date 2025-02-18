@@ -12,10 +12,7 @@ import random
 import numpy as np
 
 if __name__ == '__main__':
-    fix_seed = 2021
-    random.seed(fix_seed)
-    torch.manual_seed(fix_seed)
-    np.random.seed(fix_seed)
+    
 
     parser = argparse.ArgumentParser(description='iTransformer')
 
@@ -27,6 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, required=True, default='Autoformer',
                         help='model name, options: [Autoformer, Transformer, TimesNet]')
     parser.add_argument('--prints', type=int, default=100, help='time steps for print during training')
+    parser.add_argument('--seed', type=int, default=2021, help='seed for multi-experiments')
 
     # data loader
     parser.add_argument('--data', type=str, required=True, default='SIR', help='dataset type')
@@ -153,11 +151,15 @@ if __name__ == '__main__':
 
     if args.is_training:
         for ii in range(args.itr):
+            seed = args.seed + ii
+            random.seed(seed)
+            torch.manual_seed(seed)
+            np.random.seed(seed)
             # setting record of experiments
             exp = Exp(args)  # set experiments
             if args.data == "SIR":
                 if args.model_id == "sir_iid_noise":
-                    setting = '{}_{}_{}_samp{}_sigma{}_ls{}_lam{}_dmodel{}_{}'.format(
+                    setting = '{}_{}_{}_samp{}_sigma{}_ls{}_lam{}_dmodel{}_seed{}'.format(
                     args.task_name,
                     args.model_id,
                     args.model,
@@ -166,7 +168,7 @@ if __name__ == '__main__':
                     args.latent_size,
                     args.lambdas,
                     args.d_model,
-                    ii)
+                    seed)
                 else:
                     setting = '{}_{}_{}_samp{}_sigma{}_rho{}_lam{}_dmodel{}_{}'.format(
                     args.task_name,
