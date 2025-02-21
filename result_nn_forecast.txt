@@ -892,3 +892,6 @@ mse:1.1218059062957764, mae:0.8420894742012024
 maxei_sir_iid_noise_NISp_samp20000_sigma1.0_ls2_lam3.0_dmodel64_seed2025  
 mse:1.0634584426879883, mae:0.8211009502410889
 
+nn_forecast_sir_iid_NISp_samp4000_sigma0.03_rho-0.5_lam1_dmodel64_0  
+mse:0.001609139028005302, mae:0.03216593340039253
+

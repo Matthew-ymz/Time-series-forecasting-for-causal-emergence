@@ -28,7 +28,8 @@ python -u run.py \
   --batch_size 64 \
   --learning_rate 0.01 \
   --patience 10 \
-  --itr 1 \
+  --itr 3 \
   --train_epochs 10 \
   --fold_loc 1 \
-  --EI \
+  --seed 2050
+ 

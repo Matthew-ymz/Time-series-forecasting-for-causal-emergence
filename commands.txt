@@ -6,3 +6,5 @@ done
 for sigma in 0.05 0.1 1.0; do
     scripts/SIR/NISp_noise.sh $sigma 4
 done
+
+bash scripts/SIR/NIS.sh
