@@ -1,6 +1,6 @@
 #export CUDA_VISIBLE_DEVICES=0
 
-model_name=NN
+model_name=NN_cov
 
 python -u run.py \
   --task_name nn_forecast \
@@ -28,8 +28,9 @@ python -u run.py \
   --batch_size 64 \
   --learning_rate 0.01 \
   --patience 10 \
-  --itr 3 \
+  --itr 1 \
   --train_epochs 10 \
   --fold_loc 1 \
-  --seed 2050
+  --seed 2050 \
+  --cov_bool \
  

@@ -8,6 +8,7 @@ import torch.nn as nn
 from torch import optim
 from torch.autograd.functional import jacobian
 from torch.func import jacfwd, jacrev
+import torch.distributions as dist 
 import os
 import time
 from datetime import datetime
@@ -37,11 +38,32 @@ class Exp_NN_Forecast(Exp_Basic):
         model_optim = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
         return model_optim
 
-    def _select_criterion(self):
-        criterion = nn.L1Loss()
+    def _select_criterion(self,cov_b=False):
+        def nll_loss(mu, L, y):   
+            mvn = dist.MultivariateNormal(loc=mu, scale_tril=L)  
+            return -mvn.log_prob(y).mean()  
+
+        if cov_b:
+            criterion = nll_loss
+        else:
+            criterion = nn.L1Loss()
         return criterion
 
-    def vali(self, vali_data, vali_loader, criterion):
+    def model_step(self, batch_x, batch_y, criterion):
+        outputs, items = self.model(batch_x, EI_bool=False)
+        if self.args.cov_bool:
+            outputs = outputs.reshape(-1, outputs.size(1)*outputs.size(2))
+            batch_y = batch_y.reshape(-1, batch_y.size(1)*batch_y.size(2))
+            loss = criterion(outputs, items["L"], batch_y)
+        else:
+            f_dim = -1 if self.args.features == 'MS' else 0
+            outputs = outputs[:, -self.args.pred_len:, f_dim:]
+            batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+            loss = criterion(outputs, batch_y)
+        return loss
+
+    def vali(self, vali_data, vali_loader):
+        criterion = self._select_criterion()
         total_loss = []
         self.model.eval()
         d_EI = 0
@@ -100,7 +122,7 @@ class Exp_NN_Forecast(Exp_Basic):
         early_stopping = EarlyStopping(patience=self.args.patience, verbose=True)
 
         model_optim = self._select_optimizer()
-        criterion = self._select_criterion()
+        criterion = self._select_criterion(cov_b=self.args.cov_bool)
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
@@ -118,25 +140,15 @@ class Exp_NN_Forecast(Exp_Basic):
                 iter_count += 1
                 model_optim.zero_grad()
                 batch_x = batch_x.float().to(self.device)
-
                 batch_y = batch_y.float().to(self.device)
-
 
                 # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        outputs,_ = self.model(batch_x, EI_bool=False)
-                        f_dim = -1 if self.args.features == 'MS' else 0
-                        outputs = outputs[:, -self.args.pred_len:, f_dim:]
-                        batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-                        loss = criterion(outputs, batch_y)
+                        loss = self.model_step(batch_x, batch_y, criterion)
                         train_loss.append(loss.item())
                 else:
-                    outputs,_ = self.model(batch_x, EI_bool=False)
-                    f_dim = -1 if self.args.features == 'MS' else 0
-                    outputs = outputs[:, -self.args.pred_len:, f_dim:]
-                    batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-                    loss = criterion(outputs, batch_y)
+                    loss = self.model_step(batch_x, batch_y, criterion)
                     train_loss.append(loss.item())
 
                 if (i + 1) % self.args.prints == 0:
@@ -150,17 +162,19 @@ class Exp_NN_Forecast(Exp_Basic):
 
                 if self.args.use_amp:
                     scaler.scale(loss).backward()
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                     scaler.step(model_optim)
                     scaler.update()
                 else:
                     loss.backward()
+                    torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                     model_optim.step()
+                
 
-            print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
-            
+            print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))            
             train_loss = np.average(train_loss)
-            vali_loss, d_EI = self.vali(vali_data, vali_loader, criterion)
-            test_loss, d_EI = self.vali(test_data, test_loader, criterion)
+            vali_loss, d_EI = self.vali(vali_data, vali_loader)
+            test_loss, d_EI = self.vali(test_data, test_loader)
             if self.args.EI:
                 EI_list.append(d_EI.cpu().item())
                 print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f} d_EI: {5:.4f}".format(

@@ -895,3 +895,6 @@ mse:1.0634584426879883, mae:0.8211009502410889
 nn_forecast_sir_iid_NISp_samp4000_sigma0.03_rho-0.5_lam1_dmodel64_0  
 mse:0.001609139028005302, mae:0.03216593340039253
 
+nn_forecast_sir_iid_NN_cov_samp9000_sigma0.03_rho-0.5_lam1_dmodel128_0  
+mse:0.001388826873153448, mae:0.029874492436647415
+

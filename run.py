@@ -41,13 +41,13 @@ if __name__ == '__main__':
     parser.add_argument('--fold_loc', type=int, required=False, default=0, help='location of vali and test')
     
     # data sir
-    parser.add_argument('--size_list', type=int, nargs='+', required=True, default=9000, help='dataset size for sir. Its sum is the total number of the init points.')
-    parser.add_argument('--beta', type=float, required=True, default=1, help='dynamic param of sir')
-    parser.add_argument('--gamma', type=float, required=True, default=0.5, help='dynamic param of sir')
-    parser.add_argument('--steps', type=int, required=True, default=7, help='dynamic steps of sir')
-    parser.add_argument('--dt', type=float, required=True, default=0.01, help='dynamic dt for differential equations')
-    parser.add_argument('--sigma', type=float, required=True, default=0.03, help='noise strength')
-    parser.add_argument('--rho', type=float, required=True, default=-0.5, help='noise correlation param')
+    parser.add_argument('--size_list', type=int, nargs='+', default=9000, help='dataset size for sir. Its sum is the total number of the init points.')
+    parser.add_argument('--beta', type=float, default=1, help='dynamic param of sir')
+    parser.add_argument('--gamma', type=float, default=0.5, help='dynamic param of sir')
+    parser.add_argument('--steps', type=int, default=7, help='dynamic steps of sir')
+    parser.add_argument('--dt', type=float, default=0.01, help='dynamic dt for differential equations')
+    parser.add_argument('--sigma', type=float,default=0.03, help='noise strength')
+    parser.add_argument('--rho', type=float, default=-0.5, help='noise correlation param')
 
     #max EI
     parser.add_argument('--first_stage', type=int, default=2, help='len(epoch) of first stage for maxmize EI')
@@ -90,6 +90,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_attention', action='store_true', help='whether to output attention in ecoder')
     parser.add_argument('--jacobian', action='store_true', help='whether to output jacobian matrix')
     parser.add_argument('--EI', action='store_true', help='whether to output EI')
+    parser.add_argument('--cov_bool', action='store_true', help='whether to output covariance matrix')
     parser.add_argument('--channel_independence', type=int, default=0,
                         help='1: channel dependence 0: channel independence for FreTS model')
     # optimization
@@ -174,7 +175,7 @@ if __name__ == '__main__':
                     args.task_name,
                     args.model_id,
                     args.model,
-                    args.size_list[0],
+                    sum(args.size_list),
                     args.sigma,
                     args.rho,
                     args.lambdas,

@@ -232,7 +232,7 @@ class Dataset_Ca2p(Dataset):
         seq_x = self.data_x[offset, s_begin:s_end]
         seq_y = self.data_x[offset, r_begin:r_end]
 
-        return seq_x, seq_y
+        return index, seq_x, seq_y
 
     def __len__(self):
         return (self.data_x.shape[1] - self.seq_len - self.pred_len + 1) * self.downsample
