@@ -8,3 +8,4 @@ for sigma in 0.05 0.1 1.0; do
 done
 
 bash scripts/SIR/NIS.sh
+bash scripts/SIR/NN_cov.sh

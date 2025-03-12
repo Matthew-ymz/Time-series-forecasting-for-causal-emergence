@@ -898,3 +898,21 @@ mse:0.001609139028005302, mae:0.03216593340039253
 nn_forecast_sir_iid_NN_cov_samp9000_sigma0.03_rho-0.5_lam1_dmodel128_0  
 mse:0.001388826873153448, mae:0.029874492436647415
 
+nn_forecast_sir_iid_NN_cov_samp9000_sigma0.03_rho-0.5_lam1_dmodel128_0  
+mse:0.001388826873153448, mae:0.029874492436647415
+
+nn_forecast_sir_iid_NN_cov_samp9000_sigma0.03_rho-0.5_lam1_dmodel128_0  
+mse:0.001388826873153448, mae:0.029874492436647415
+
+nn_forecast_data_mean_996_37_NN_cov_QBO_ftM_sl1_pl1_dm256_nh8_el2_dl1_df2048_fc1_floc1_ebtimeF_dtTrue_Exp_0  
+mse:86.94384002685547, mae:5.126911640167236
+
+nn_forecast_data_mean_996_37_NN_cov_QBO_ftM_sl1_pl1_dm256_nh8_el2_dl1_df2048_fc1_floc1_ebtimeF_dtTrue_Exp_0  
+mse:86.94384002685547, mae:5.126911640167236
+
+nn_forecast_data_mean_996_37_NN_cov_QBO_ftM_sl12_pl12_dm256_nh8_el2_dl1_df2048_fc1_floc1_ebtimeF_dtTrue_Exp_0  
+mse:nan, mae:nan
+
+nn_forecast_data_mean_996_37_NN_cov_QBO_ftM_sl12_pl12_dm256_nh8_el2_dl1_df2048_fc1_floc1_ebtimeF_dtTrue_Exp_0  
+mse:nan, mae:nan
+

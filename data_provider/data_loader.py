@@ -44,14 +44,14 @@ class SIRModel(Dataset):
         #self.__read_data__()
         if use_cache and os.path.isfile(self.path):
             loaded_data_dict = np.load(self.path, allow_pickle=True).item()
-            self.sir_input = loaded_data_dict['input']
-            self.sir_output = loaded_data_dict['output']
+            self.input = loaded_data_dict['input']
+            self.output = loaded_data_dict['output']
 
         else:
-            self.sir_input, self.sir_output = self._simulate_multiseries()
+            self.input, self.output = self._simulate_multiseries()
             data_dict = {
-                'input': self.sir_input,
-                'output': self.sir_output,
+                'input': self.input,
+                'output': self.output,
             }
 
             np.save(self.path, data_dict)
