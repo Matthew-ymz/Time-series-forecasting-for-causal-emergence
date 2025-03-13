@@ -33,4 +33,5 @@ python -u run.py \
   --fold_loc 1 \
   --seed 2050 \
   --cov_bool \
+  --EI \
  

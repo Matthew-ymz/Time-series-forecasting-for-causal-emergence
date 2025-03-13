@@ -81,10 +81,15 @@ class Exp_NN_Forecast(Exp_Basic):
         total_loss = []
         self.model.eval()
         d_EI = 0
+        EI_data_x = torch.tensor([]).float().to(device=self.device)
+        EI_data_y = torch.tensor([]).float().to(device=self.device)
         with torch.no_grad():
             for i, (idx, batch_x, batch_y) in enumerate(vali_loader):
                 batch_x = batch_x.float().to(self.device)
                 batch_y = batch_y.float().to(self.device)
+                if self.args.EI:
+                    EI_data_x = torch.cat((EI_data_x, batch_x), dim=0)
+                    EI_data_y = torch.cat((EI_data_y, batch_y), dim=0)
 
                 # encoder - decoder
                 if self.args.use_amp:
@@ -106,13 +111,11 @@ class Exp_NN_Forecast(Exp_Basic):
                 total_loss.append(loss)
 
             if self.args.EI:
-                x = torch.from_numpy(vali_data.input).float().to(device=self.device)
-                y = torch.from_numpy(vali_data.output).float().to(device=self.device)
-                outputs,ei_items = self.model(x, self.args.EI)
-                if self.args.model == "NN":
-                    h_t1 = y.reshape(-1,y.size(1)*y.size(2))
+                outputs,ei_items = self.model(EI_data_x, self.args.EI)
+                if "NIS" in self.args.model:
+                    h_t1 = self.model.encoding(EI_data_y)
                 else:
-                    h_t1 = self.model.encoding(y)
+                    h_t1 = EI_data_y.reshape(-1,EI_data_y.size(1)*EI_data_y.size(2))
                 ei_items['h_t1'] = h_t1
                 d_EI, term1, term2 = self.EI(ei_items=ei_items)
                 print("term1:",term1.item())

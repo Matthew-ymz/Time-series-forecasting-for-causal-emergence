@@ -27,7 +27,7 @@ class Model(nn.Module):
         self.fc_L = nn.Linear(configs.d_model, self.output_size * (self.output_size + 1) // 2) 
         self.relu = nn.LeakyReLU()
         self.dropout = nn.Dropout(p=0.1)
-        self.func = lambda x: self.forecast(x)
+        self.func = lambda x: self.forecast(x)[0]
         # Decoder
         if self.task_name == 'nn_forecast':
             self.projection = nn.Linear(configs.d_model, self.output_size, bias=True)
@@ -75,6 +75,9 @@ class Model(nn.Module):
         else:
             L = 0
         dec_out = mu.reshape(B, self.pred_len, N)
+        # print("!!!!!!!!!!")
+        # print(dec_out)
+        # print(L)
         return dec_out, L
 
     def forward(self, x_enc, EI_bool=False):

@@ -916,3 +916,6 @@ mse:nan, mae:nan
 nn_forecast_data_mean_996_37_NN_cov_QBO_ftM_sl12_pl12_dm256_nh8_el2_dl1_df2048_fc1_floc1_ebtimeF_dtTrue_Exp_0  
 mse:nan, mae:nan
 
+nn_forecast_sir_iid_NN_cov_samp9000_sigma0.03_rho-0.5_lam1_dmodel128_0  
+mse:0.001257586758583784, mae:0.02844606712460518
+

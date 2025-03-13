@@ -137,7 +137,7 @@ class SIRModel(Dataset):
         """
         Return the length of the dataset.
         """
-        return len(self.sir_input)
+        return len(self.input)
 
     def __getitem__(self, idx):
         """
@@ -146,7 +146,7 @@ class SIRModel(Dataset):
         :param idx: Index of the item.
         :return: A tuple of torch.Tensor representing the input and output.
         """
-        return idx, torch.tensor(self.sir_input[idx], dtype=torch.float), torch.tensor(self.sir_output[idx], dtype=torch.float)
+        return idx, torch.tensor(self.input[idx], dtype=torch.float), torch.tensor(self.output[idx], dtype=torch.float)
 
 
 class Dataset_Ca2p(Dataset):
