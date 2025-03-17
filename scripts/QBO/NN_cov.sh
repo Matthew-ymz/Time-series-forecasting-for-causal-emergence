@@ -13,18 +13,18 @@ python -u run.py \
   --data QBO \
   --target stage \
   --features M \
-  --seq_len 2 \
-  --pred_len 2 \
+  --seq_len 12 \
+  --pred_len 12 \
   --downsample 1 \
   --c_in 37 \
   --c_out 37 \
   --des 'Exp' \
   --d_model 256 \
-  --batch_size 24 \
+  --batch_size 1 \
   --learning_rate 0.001 \
   --patience 10 \
   --itr 1 \
   --train_epochs 15\
   --fold_loc 1 \
   --cov_bool \
-  --print 2 \
+  --print 20 \

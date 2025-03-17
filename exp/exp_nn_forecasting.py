@@ -38,24 +38,15 @@ class Exp_NN_Forecast(Exp_Basic):
         return model_optim
 
     def _select_criterion(self,cov_b=False):
-
         def nll_loss(mu, L, y):
             diff = y - mu  # 形状: (batch_size, n)
-            
-            # 解线性方程组 Lz = diff，得到 z = L^{-1} (y - mu)
-            z = torch.linalg.solve_triangular(L, diff.unsqueeze(-1), upper=False)  # 形状: (batch_size, n, 1)
-            z = z.squeeze(-1)  # 去掉多余的维度，形状: (batch_size, n)
-            
-            # 计算 Mahalanobis 距离: (y - mu)^T Sigma^{-1} (y - mu) = z^T z
+            L_diag = torch.diagonal(L, dim1=-2, dim2=-1)  # 形状: (batch_size, n)
+            z = diff / L_diag  # 形状: (batch_size, n)
             mahalanobis = torch.sum(z**2, dim=-1)  # 形状: (batch_size,)
-            
-            # 计算对数行列式 log|Sigma| = 2 * sum(log(diag(L)))
-            log_det = 2 * torch.sum(torch.log(torch.diagonal(L, dim1=-2, dim2=-1)), dim=-1)  # 形状: (batch_size,)
-            
-            # 计算对数概率密度
+            log_det = 2 * torch.sum(torch.log(L_diag), dim=-1)  # 形状: (batch_size,)
             n = L.shape[-1]  # 维度
             log_prob = -0.5 * (n * torch.log(2 * torch.tensor(torch.pi)) + log_det + mahalanobis)  # 形状: (batch_size,)
-            return -log_prob.mean() 
+            return -log_prob.mean()
 
         if cov_b:
             criterion = nll_loss
