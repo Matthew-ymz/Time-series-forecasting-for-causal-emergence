@@ -240,6 +240,11 @@ class Exp_NN_Forecast(Exp_Basic):
         if self.args.jacobian and (not os.path.exists(jacobian_path)):
             os.makedirs(jacobian_path)
 
+        if self.args.cov_bool:
+            L_path = './results/cov_L/' + setting + '/'
+            if self.args.jacobian and (not os.path.exists(L_path)):
+                os.makedirs(L_path)
+
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
 
@@ -292,8 +297,12 @@ class Exp_NN_Forecast(Exp_Basic):
                     np.save(jacobian_path + f'jac_{i:04}.npy', jac)
                     print(f'saving jacobian: jac_{i:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
                     mae, mse, rmse, mape, mspe, msed = metric(pred, true, cor=True)
-    
                     np.save(jacobian_path + f'msed_{i:04}.npy', msed)
+
+                if self.args.cov_bool:
+                    mu,L = self.model.forecast(batch_x)
+                    L = L.cpu().detach().data.numpy()
+                    np.save(L_path + f'L_{i:04}.npy', L)
 
                 if self.args.output_attention and attn is not None:
                     attn = attn.astype(np.float16)

@@ -12,8 +12,8 @@ python -u run.py \
   --data QBO \
   --target stage \
   --features M \
-  --seq_len 1 \
-  --pred_len 1 \
+  --seq_len 12 \
+  --pred_len 12 \
   --downsample 1 \
   --e_layers 4 \
   --d_layers 1 \
@@ -30,4 +30,5 @@ python -u run.py \
   --itr 1 \
   --train_epochs 30 \
   --inverse \
+  --lradj type1 \
   --jacobian

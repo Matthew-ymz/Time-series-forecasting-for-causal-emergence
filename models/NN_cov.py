@@ -59,13 +59,13 @@ class Model(nn.Module):
 
         # Embedding
         enc_0 = self.enc_embedding(x_enc)
-        enc_0 = self.fc1(enc_0)
-        enc_out = self.dropout(enc_0)
+        enc_out = self.fc1(enc_0)
+        enc_out = self.dropout(enc_out)
         enc_out = self.relu(enc_out)
         enc_out = self.fc2(enc_out)
         enc_out = self.dropout(enc_out)
         enc_out = self.relu(enc_out) 
-        mu = self.projection(enc_out)
+        mu = self.projection(enc_out) 
         if self.cov_bool:
             L_elements = self.fc_L(enc_out)  # Cholesky 分解的下三角部分         
             L = torch.diag_embed(L_elements).abs()

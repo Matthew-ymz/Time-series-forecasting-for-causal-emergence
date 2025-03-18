@@ -19,12 +19,14 @@ python -u run.py \
   --c_in 37 \
   --c_out 37 \
   --des 'Exp' \
-  --d_model 256 \
-  --batch_size 1 \
+  --d_model 512 \
+  --batch_size 12 \
   --learning_rate 0.001 \
   --patience 10 \
   --itr 1 \
-  --train_epochs 15\
+  --train_epochs 25\
   --fold_loc 1 \
   --cov_bool \
   --print 20 \
+  --lradj type1 \
+  --jacobian \

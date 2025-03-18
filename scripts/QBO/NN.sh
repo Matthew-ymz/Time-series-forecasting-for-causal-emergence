@@ -20,10 +20,11 @@ python -u run.py \
   --c_out 37 \
   --des 'Exp' \
   --d_model 256 \
-  --batch_size 12 \
+  --batch_size 16 \
   --learning_rate 0.001 \
-  --patience 10 \
+  --patience 5 \
   --itr 1 \
-  --train_epochs 30 \
-  --jacobian \
+  --train_epochs 25 \
   --fold_loc 1 \
+  --lradj type1 \
+  --jacobian \
