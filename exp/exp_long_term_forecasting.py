@@ -35,45 +35,85 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         model_optim = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
         return model_optim
 
-    def _select_criterion(self):
-        criterion = nn.MSELoss()
+    def _select_criterion(self,cov_b=False):
+        def nll_loss(mu, L, y):
+            diff = y - mu  # 形状: (batch_size, n)
+            L_diag = torch.diagonal(L, dim1=-2, dim2=-1)  # 形状: (batch_size, n)
+            z = diff / L_diag  # 形状: (batch_size, n)
+            mahalanobis = torch.sum(z**2, dim=-1)  # 形状: (batch_size,)
+            log_det = 2 * torch.sum(torch.log(L_diag), dim=-1)  # 形状: (batch_size,)
+            n = L.shape[-1]  # 维度
+            log_prob = -0.5 * (n * torch.log(2 * torch.tensor(torch.pi)) + log_det + mahalanobis)  # 形状: (batch_size,)
+            return -log_prob.mean()
+
+        if cov_b:
+            criterion = nll_loss
+        else:
+            criterion = nn.MSELoss()
         return criterion
+
+    def model_step(self, batch_x, batch_y, criterion):
+        dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:,:]).float().to(self.device)
+        if self.args.cov_bool:
+            if self.args.output_attention:
+                outputs, attn, L = self.model(batch_x, dec_inp)
+            else:
+                outputs, L = self.model(batch_x, dec_inp)
+            outputs = outputs.reshape(-1, outputs.size(1)*outputs.size(2))
+            batch_y = batch_y.reshape(-1, batch_y.size(1)*batch_y.size(2))
+            loss = criterion(outputs, L, batch_y)
+        else:
+            if self.args.output_attention:
+                outputs, attn = self.model(batch_x, dec_inp)
+            else:
+                outputs = self.model(batch_x, dec_inp)
+            f_dim = -1 if self.args.features == 'MS' else 0
+            outputs = outputs[:, -self.args.pred_len:, f_dim:]
+            batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+            loss = criterion(outputs, batch_y)
+        return loss
 
     def vali(self, vali_data, vali_loader, criterion):
         total_loss = []
         self.model.eval()
         with torch.no_grad():
-            for i, (batch_x, batch_y) in enumerate(vali_loader):
+            for i, (idx, batch_x, batch_y) in enumerate(vali_loader):
                 batch_x = batch_x.float().to(self.device)
                 batch_y = batch_y.float().to(self.device)
 
-                # decoder input
-                dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float().to(self.device)
-                # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        if self.args.output_attention:
-                            outputs, attn = self.model(batch_x, dec_inp)
-                        else:
-                            outputs = self.model(batch_x, dec_inp)
+                        loss = self.model_step(batch_x, batch_y, criterion)      
                 else:
-                    if self.args.output_attention:
-                        outputs, attn = self.model(batch_x, dec_inp)
-                    else:
-                        outputs = self.model(batch_x, dec_inp)
-                f_dim = -1 if self.args.features == 'MS' else 0
-                outputs = outputs[:, -self.args.pred_len:, f_dim:]
-                batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+                    loss = self.model_step(batch_x, batch_y, criterion)
 
-                pred = outputs.detach().cpu()
-                true = batch_y.detach().cpu()
-#                 print('pred', pred)
-#                 print('true', true)
 
-                loss = criterion(pred, true)
+#                 # decoder input
+#                 dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float().to(self.device)
+#                 # encoder - decoder
+#                 if self.args.use_amp:
+#                     with torch.cuda.amp.autocast():
+#                         if self.args.output_attention:
+#                             outputs, attn = self.model(batch_x, dec_inp)
+#                         else:
+#                             outputs = self.model(batch_x, dec_inp)
+#                 else:
+#                     if self.args.output_attention:
+#                         outputs, attn = self.model(batch_x, dec_inp)
+#                     else:
+#                         outputs = self.model(batch_x, dec_inp)
+#                 f_dim = -1 if self.args.features == 'MS' else 0
+#                 outputs = outputs[:, -self.args.pred_len:, f_dim:]
+#                 batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+
+#                 pred = outputs.detach().cpu()
+#                 true = batch_y.detach().cpu()
+# #                 print('pred', pred)
+# #                 print('true', true)
+#                 loss = criterion(pred, true)
 #                 print('loss', loss)
 
-                total_loss.append(loss)
+                total_loss.append(loss.item())
         total_loss = np.average(total_loss)
         self.model.train()
         return total_loss
@@ -93,7 +133,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         early_stopping = EarlyStopping(patience=self.args.patience, verbose=True)
 
         model_optim = self._select_optimizer()
-        criterion = self._select_criterion()
+        criterion = self._select_criterion(cov_b=self.args.cov_bool)
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
@@ -104,40 +144,36 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
             self.model.train()
             epoch_time = time.time()
-            for i, (batch_x, batch_y) in enumerate(train_loader):
+            for i, (idx, batch_x, batch_y) in enumerate(train_loader):
                 iter_count += 1
                 model_optim.zero_grad()
                 batch_x = batch_x.float().to(self.device)
-
                 batch_y = batch_y.float().to(self.device)
-
-                # decoder input
-                dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:,:]).float().to(self.device)
 
                 # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        if self.args.output_attention:
-                            outputs, attn = self.model(batch_x, dec_inp)
-                        else:
-                            outputs = self.model(batch_x, dec_inp)
-
-                        f_dim = -1 if self.args.features == 'MS' else 0
-                        outputs = outputs[:, -self.args.pred_len:, f_dim:]
-                        batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-                        loss = criterion(outputs, batch_y)
+                        loss = self.model_step(batch_x, batch_y, criterion)
                         train_loss.append(loss.item())
                 else:
-                    if self.args.output_attention:
-                        outputs, attn = self.model(batch_x, dec_inp)
-                    else:
-                        outputs = self.model(batch_x, dec_inp)
-
-                    f_dim = -1 if self.args.features == 'MS' else 0
-                    outputs = outputs[:, -self.args.pred_len:, f_dim:]
-                    batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-                    loss = criterion(outputs, batch_y)
+                    loss = self.model_step(batch_x, batch_y, criterion)
                     train_loss.append(loss.item())
+
+                # if self.args.use_amp:
+                #     with torch.cuda.amp.autocast():
+                        
+                #         train_loss.append(loss.item())
+                # else:
+                #     if self.args.output_attention:
+                #         outputs, attn = self.model(batch_x, dec_inp)
+                #     else:
+                #         outputs = self.model(batch_x, dec_inp)
+
+                #     f_dim = -1 if self.args.features == 'MS' else 0
+                #     outputs = outputs[:, -self.args.pred_len:, f_dim:]
+                #     batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+                #     loss = criterion(outputs, batch_y)
+                #     train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
@@ -205,12 +241,17 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         if self.args.jacobian and (not os.path.exists(jacobian_path)):
             os.makedirs(jacobian_path)
 
+        if self.args.cov_bool:
+            L_path = './results/cov_L/' + setting + '/'
+            if self.args.jacobian and (not os.path.exists(L_path)):
+                os.makedirs(L_path)
+
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
 
         self.model.eval()
         # with torch.no_grad():
-        for i, (batch_x, batch_y) in enumerate(test_loader):
+        for i, (idx, batch_x, batch_y) in enumerate(test_loader):
             self.model.zero_grad()
             batch_x = batch_x.float().to(self.device)
             batch_y = batch_y.float().to(self.device)
@@ -221,14 +262,22 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             # encoder - decoder
             if self.args.use_amp:
                 with torch.cuda.amp.autocast():
-                    if self.args.output_attention:
+                    if self.args.output_attention and self.args.cov_bool:
+                        outputs, attn, L = self.model(batch_x, dec_inp)
+                    elif self.args.output_attention:
                         outputs, attn = self.model(batch_x, dec_inp)
+                    elif self.args.cov_bool:
+                        outputs, L = self.model(batch_x, dec_inp)
                     else:
                         outputs = self.model(batch_x, dec_inp)
 
             else:
-                if self.args.output_attention:
+                if self.args.output_attention and self.args.cov_bool:
+                    outputs, attn, L = self.model(batch_x, dec_inp)
+                elif self.args.output_attention:
                     outputs, attn = self.model(batch_x, dec_inp)
+                elif self.args.cov_bool:
+                    outputs, L = self.model(batch_x, dec_inp)
                 else:
                     outputs = self.model(batch_x, dec_inp)
 
@@ -260,7 +309,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 print(f'elapse: {t-t0:.2}s')
                 t0 = t
                 if self.args.jacobian and (self.args.pred_len == self.args.seq_len):
-                    if self.args.output_attention:
+                    if self.args.output_attention or self.args.cov_bool:
                         fun = lambda x: self.model(x, dec_inp)[0]
                     else:
                         fun = lambda x: self.model(x, dec_inp)
@@ -268,6 +317,11 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     jac = jac.detach().cpu().numpy()[0,:,:,0,:,:].astype(np.float16)
                     np.save(jacobian_path + f'jac_{i:04}.npy', jac)
                     print(f'saving jacobian: jac_{i:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
+
+                if self.args.cov_bool:
+                    mu, attn, L = self.model.forecast(batch_x)
+                    L = L.cpu().detach().data.numpy()
+                    np.save(L_path + f'L_{i:04}.npy', L)
 
                 if self.args.output_attention and attn is not None:
                     attn = attn.astype(np.float16)

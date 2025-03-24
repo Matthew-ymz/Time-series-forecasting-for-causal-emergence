@@ -1,6 +1,6 @@
 import os
 import torch
-from models import NIS, DLinear, iTransformer, Transformer, NN, NISp, RNIS, NN_cov
+from models import NIS, DLinear, iTransformer, iTransformer_cov, Transformer, NN, NISp, RNIS, NN_cov
 
 
 class Exp_Basic(object):
@@ -9,6 +9,7 @@ class Exp_Basic(object):
         self.model_dict = {
             'DLinear': DLinear,
             'iTransformer': iTransformer,
+            'iTransformer_cov': iTransformer_cov,
             'Transformer': Transformer,
             'NN': NN,
             'NIS': NIS,
