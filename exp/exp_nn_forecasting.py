@@ -37,7 +37,7 @@ class Exp_NN_Forecast(Exp_Basic):
         model_optim = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
         return model_optim
 
-    def _select_criterion(self,cov_b=False):
+    def _select_criterion(self,cov_b=False, lam=0):
         def nll_loss(mu, L, y):
             diff = y - mu  # 形状: (batch_size, n)
             L_diag = torch.diagonal(L, dim1=-2, dim2=-1)  # 形状: (batch_size, n)

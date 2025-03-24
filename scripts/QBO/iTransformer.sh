@@ -18,8 +18,8 @@ python -u run.py \
   --e_layers 4 \
   --d_layers 1 \
   --factor 3 \
-  --enc_in 862 \
-  --dec_in 862 \
+  --enc_in 64 \
+  --dec_in 64 \
   --c_out 862 \
   --des 'Exp' \
   --d_model 512 \

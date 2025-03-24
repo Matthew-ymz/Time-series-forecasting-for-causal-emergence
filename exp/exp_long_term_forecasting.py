@@ -35,8 +35,10 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         model_optim = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
         return model_optim
 
-    def _select_criterion(self,cov_b=False):
+    def _select_criterion(self,cov_b=False, lam=0):
+        criterion0 = nn.MSELoss()
         def nll_loss(mu, L, y):
+            loss1 = criterion0(mu, y)
             diff = y - mu  # 形状: (batch_size, n)
             L_diag = torch.diagonal(L, dim1=-2, dim2=-1)  # 形状: (batch_size, n)
             z = diff / L_diag  # 形状: (batch_size, n)
@@ -44,7 +46,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             log_det = 2 * torch.sum(torch.log(L_diag), dim=-1)  # 形状: (batch_size,)
             n = L.shape[-1]  # 维度
             log_prob = -0.5 * (n * torch.log(2 * torch.tensor(torch.pi)) + log_det + mahalanobis)  # 形状: (batch_size,)
-            return -log_prob.mean()
+            return loss1 - lam * log_prob.mean()
 
         if cov_b:
             criterion = nll_loss
@@ -133,7 +135,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         early_stopping = EarlyStopping(patience=self.args.patience, verbose=True)
 
         model_optim = self._select_optimizer()
-        criterion = self._select_criterion(cov_b=self.args.cov_bool)
+        criterion = self._select_criterion(cov_b=self.args.cov_bool, lam=self.args.loss_lam)
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()

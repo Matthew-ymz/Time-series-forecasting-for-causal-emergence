@@ -104,6 +104,7 @@ if __name__ == '__main__':
     parser.add_argument('--loss', type=str, default='MSE', help='loss function')
     parser.add_argument('--lradj', type=str, default='type0', help='adjust learning rate')
     parser.add_argument('--use_amp', action='store_true', help='use automatic mixed precision training', default=False)
+    parser.add_argument('--loss_lam', type=float, default=0.0, help='balance for MSE and log_likelihood')
 
     # GPU
     parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')
@@ -182,7 +183,7 @@ if __name__ == '__main__':
                     args.d_model,
                     ii)
             else:
-                setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_eb{}_dt{}_{}_{}'.format(
+                setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_lam{}_dt{}_{}_{}'.format(
                     args.task_name,
                     args.model_id,
                     args.model,
@@ -197,7 +198,7 @@ if __name__ == '__main__':
                     args.d_ff,
                     args.factor,
                     args.fold_loc,
-                    args.embed,
+                    args.loss_lam,
                     args.distil,
                     args.des, ii)
 

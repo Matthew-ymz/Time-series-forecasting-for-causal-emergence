@@ -26,10 +26,11 @@ python -u run.py \
   --d_ff 512 \
   --batch_size 16 \
   --learning_rate 0.001 \
-  --patience 5 \
+  --patience 7 \
   --itr 1 \
   --train_epochs 30 \
   --inverse \
   --lradj type1 \
   --jacobian \
-  --cov_bool 
+  --cov_bool \
+  --loss_lam 0.0005
