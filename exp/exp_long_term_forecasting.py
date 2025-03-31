@@ -306,11 +306,11 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
             preds.append(pred)
             trues.append(true)
-            if (i >= 600) and (i % 12 == 0):
+            if (i >= self.args.jac_init) and (i % self.args.jac_interval == 0):
                 t = time.time()
                 print(f'elapse: {t-t0:.2}s')
                 t0 = t
-                if self.args.jacobian and (self.args.pred_len == self.args.seq_len):
+                if self.args.jacobian:
                     if self.args.output_attention or self.args.cov_bool:
                         fun = lambda x: self.model(x, dec_inp)[0]
                     else:

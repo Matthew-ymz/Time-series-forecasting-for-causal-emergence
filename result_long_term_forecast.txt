@@ -37,3 +37,6 @@ mse:159.63658142089844, mae:6.406719207763672
 long_term_forecast_data_mean_996_37_iTransformer_cov_QBO_ftM_sl12_pl12_dm512_nh8_el4_dl1_df512_fc3_floc0_lam0.0005_dtTrue_Exp_0  
 mse:190.9027557373047, mae:6.99851131439209
 
+long_term_forecast_iT_cov_qbo_daily_iTransformer_QBO_ftM_sl96_pl12_dm512_nh8_el4_dl1_df512_fc3_floc0_lam0.0_dtTrue_Exp_0  
+mse:7.153426647186279, mae:1.40519380569458
+

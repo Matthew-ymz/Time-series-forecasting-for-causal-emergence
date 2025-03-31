@@ -89,6 +89,8 @@ if __name__ == '__main__':
     parser.add_argument('--activation', type=str, default='gelu', help='activation')
     parser.add_argument('--output_attention', action='store_true', help='whether to output attention in ecoder')
     parser.add_argument('--jacobian', action='store_true', help='whether to output jacobian matrix')
+    parser.add_argument('--jac_init', type=int, default=1000, help='start time of jacobian output')
+    parser.add_argument('--jac_interval', type=int, default=30, help='interval time of jacobian output')
     parser.add_argument('--EI', action='store_true', help='whether to output EI')
     parser.add_argument('--cov_bool', action='store_true', help='whether to output covariance matrix')
     parser.add_argument('--channel_independence', type=int, default=0,
