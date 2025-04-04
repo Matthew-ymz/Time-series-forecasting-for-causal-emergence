@@ -18,6 +18,7 @@ class Model(nn.Module):
         self.cov_bool = configs.cov_bool
         self.seq_len = configs.seq_len
         self.pred_len = configs.pred_len
+        self.features = configs.features
         self.output_attention = configs.output_attention
         # Embedding
         self.enc_embedding = DataEmbedding_inverted(configs.seq_len, configs.d_model, configs.embed, configs.freq,
@@ -66,7 +67,10 @@ class Model(nn.Module):
 
         dec_out = self.projection(enc_out).permute(0, 2, 1)[:, :, :N]
         if self.cov_bool:
-            L_elements = self.fc_L(enc_out).permute(0, 2, 1)[:, :, :N]
+            if self.features == -1:
+                L_elements = self.fc_L(enc_out).permute(0, 2, 1)[:, :, :N]
+            else:
+                L_elements = self.fc_L(enc_out).permute(0, 2, 1)[:, :, self.features]
             L_elements = L_elements.reshape(-1, L_elements.size(1)*L_elements.size(2))    
             L = torch.diag_embed(L_elements).abs()
         else:

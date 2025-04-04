@@ -32,13 +32,14 @@ if __name__ == '__main__':
     parser.add_argument('--use_cache', type=bool, default=True, help='dataset cache used status')
     parser.add_argument('--root_path', type=str, default='./dataset/SIR/', help='root path of the data file')
     parser.add_argument('--data_path', type=str, default='ETTh1.csv', help='data file')
-    parser.add_argument('--features', type=str, default='M',
-                        help='forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate')
+    # parser.add_argument('--features', type=str, default='M',
+    #                     help='forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate')
+    parser.add_argument('--features', type=int, nargs='+', default=-1, help='list for predicted dims, -1 for all dims')
     parser.add_argument('--target', type=str, default='OT', help='target feature in S or MS task')
     parser.add_argument('--freq', type=str, default='h',
                         help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')
     parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
-    parser.add_argument('--fold_loc', type=int, required=False, default=0, help='location of vali and test')
+    parser.add_argument('--fold_loc', type=str, required=False, default='normal', help='location of vali and test')
     
     # data sir
     parser.add_argument('--size_list', type=int, nargs='+', default=9000, help='dataset size for sir. Its sum is the total number of the init points.')
@@ -90,6 +91,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_attention', action='store_true', help='whether to output attention in ecoder')
     parser.add_argument('--jacobian', action='store_true', help='whether to output jacobian matrix')
     parser.add_argument('--jac_init', type=int, default=1000, help='start time of jacobian output')
+    parser.add_argument('--jac_end', type=int, default=2000, help='end time of jacobian output')
     parser.add_argument('--jac_interval', type=int, default=30, help='interval time of jacobian output')
     parser.add_argument('--EI', action='store_true', help='whether to output EI')
     parser.add_argument('--cov_bool', action='store_true', help='whether to output covariance matrix')
@@ -190,7 +192,7 @@ if __name__ == '__main__':
                     args.model_id,
                     args.model,
                     args.data,
-                    args.features,
+                    args.features[0],
                     args.seq_len,
                     args.pred_len,
                     args.d_model,

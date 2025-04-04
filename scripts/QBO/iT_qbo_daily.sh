@@ -7,13 +7,13 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/QBO/ \
   --data_path daily_1979_2023_16436_37.csv \
-  --model_id iT_cov_qbo_daily \
+  --model_id iT_qbo_daily \
   --model $model_name \
   --data QBO \
   --target stage \
-  --features M \
+  --features 5 6 7 8 9 \
   --seq_len 96 \
-  --pred_len 12 \
+  --pred_len 96 \
   --downsample 1 \
   --e_layers 4 \
   --d_layers 1 \
@@ -32,5 +32,7 @@ python -u run.py \
   --inverse \
   --lradj type1 \
   --jacobian \
-  --jac_init 11687 \
-  --jac_interval 108
+  --jac_init 12419 \
+  --jac_end 13880 \
+  --jac_interval 96 \
+  --fold_loc vali_first \

@@ -151,7 +151,7 @@ class SIRModel(Dataset):
 
 class Dataset_Ca2p(Dataset):
     def __init__(self, root_path, flag='train', size=None,
-                 features='S', data_path='Ca2p.csv', fold_loc=0,
+                 features='S', data_path='Ca2p.csv', fold_loc='normal',
                  target='OT', scale=True, downsample=1, timeenc=0, freq='h', seasonal_patterns=None):
 
         assert size != None, "You must specify the size of the dataset"
@@ -188,25 +188,29 @@ class Dataset_Ca2p(Dataset):
         if self.target in cols:
             cols.remove(self.target)
         ds_len = (len(df_raw) // self.downsample) - 1
-        num_train = int(ds_len * 0.7)
-        num_test = int(ds_len * 0.2)
+        num_train = int(ds_len * 0.81)
+        num_test = int(ds_len * 0.09)
         num_vali = ds_len - num_train - num_test
-        if self.fold_loc == 0:
+        print(self.fold_loc)
+        if self.fold_loc == 'normal':
             border1s = [0, num_train - self.seq_len, ds_len - num_test - self.seq_len, 0]
             border2s = [num_train, num_train + num_vali, ds_len, ds_len]
+        elif self.fold_loc == 'vali_first':
+            border1s = [num_vali - self.seq_len, 0,        ds_len - num_test - self.seq_len, 0]
+            border2s = [num_vali + num_train,    num_vali, ds_len,                           ds_len]
         else:
             border1s = [ds_len - num_test - self.seq_len, 0,  num_vali - self.seq_len, 0]
             border2s = [ds_len, num_vali, num_vali + num_test, ds_len]
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
 
-        if self.features == 'M' or self.features == 'MS':
-            # cols_data = df_raw.columns[1:-1]
-            cols_data = df_raw.columns[1:]
-            df_data = df_raw[cols_data]
-        elif self.features == 'S':
-            assert self.target in cols
-            df_data = df_raw[[self.target]]
+        # if self.features == 'M' or self.features == 'MS':
+        #     # cols_data = df_raw.columns[1:-1]
+        cols_data = df_raw.columns[1:]
+        df_data = df_raw[cols_data]
+        # elif self.features == 'S':
+        #     assert self.target in cols
+        #     df_data = df_raw[[self.target]]
 
         if self.scale:
             train_data = df_data[border1s[0]:border2s[0]]

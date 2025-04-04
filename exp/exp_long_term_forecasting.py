@@ -61,6 +61,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 outputs, attn, L = self.model(batch_x, dec_inp)
             else:
                 outputs, L = self.model(batch_x, dec_inp)
+            if self.args.features == -1:
+                outputs = outputs[:, -self.args.pred_len:, :]
+                batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
+            else:
+                outputs = outputs[:, -self.args.pred_len:, self.args.features]
+                batch_y = batch_y[:, -self.args.pred_len:, self.args.features].to(self.device)
             outputs = outputs.reshape(-1, outputs.size(1)*outputs.size(2))
             batch_y = batch_y.reshape(-1, batch_y.size(1)*batch_y.size(2))
             loss = criterion(outputs, L, batch_y)
@@ -69,9 +75,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 outputs, attn = self.model(batch_x, dec_inp)
             else:
                 outputs = self.model(batch_x, dec_inp)
-            f_dim = -1 if self.args.features == 'MS' else 0
-            outputs = outputs[:, -self.args.pred_len:, f_dim:]
-            batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
+            if self.args.features == -1:
+                outputs = outputs[:, -self.args.pred_len:, :]
+                batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
+            else:
+                outputs = outputs[:, -self.args.pred_len:, self.args.features]
+                batch_y = batch_y[:, -self.args.pred_len:, self.args.features].to(self.device)
             loss = criterion(outputs, batch_y)
         return loss
 
@@ -177,7 +186,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 #     loss = criterion(outputs, batch_y)
                 #     train_loss.append(loss.item())
 
-                if (i + 1) % 100 == 0:
+                if (i + 1) % self.args.prints == 0:
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
                     speed = (time.time() - time_now) / iter_count
                     left_time = speed * ((self.args.train_epochs - epoch) * train_steps - i)
@@ -288,7 +297,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             #     scaler.scale(s).backward()
             # else:
 
-            f_dim = -1 if self.args.features == 'MS' else 0
+            # f_dim = -1 if self.args.features == 'MS' else 0
             outputs = outputs[:, -self.args.pred_len:, :]
             batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
             outputs = outputs.detach().cpu().numpy()
@@ -298,23 +307,30 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 outputs = test_data.inverse_transform(outputs.squeeze(0)).reshape(shape)
                 batch_y = test_data.inverse_transform(batch_y.squeeze(0)).reshape(shape)
     
-            outputs = outputs[:, :, f_dim:]
-            batch_y = batch_y[:, :, f_dim:]
+            if self.args.features != -1:
+                outputs = outputs[:, :, self.args.features]
+                batch_y = batch_y[:, :, self.args.features]
 
             pred = outputs
             true = batch_y
 
             preds.append(pred)
             trues.append(true)
-            if (i >= self.args.jac_init) and (i % self.args.jac_interval == 0):
+            if (i >= self.args.jac_init) and (i <= self.args.jac_end) and (i % self.args.jac_interval == 0):
                 t = time.time()
                 print(f'elapse: {t-t0:.2}s')
                 t0 = t
                 if self.args.jacobian:
                     if self.args.output_attention or self.args.cov_bool:
-                        fun = lambda x: self.model(x, dec_inp)[0]
+                        if self.args.features == -1:
+                            fun = lambda x: self.model(x, dec_inp)[0]
+                        else:
+                            fun = lambda x: self.model(x, dec_inp)[0][:, :, self.args.features]
                     else:
-                        fun = lambda x: self.model(x, dec_inp)
+                        if self.args.features == -1:
+                            fun = lambda x: self.model(x, dec_inp)
+                        else:
+                            fun = lambda x: self.model(x, dec_inp)[:, :, self.args.features]
                     jac = jacobian(fun, batch_x)
                     jac = jac.detach().cpu().numpy()[0,:,:,0,:,:].astype(np.float16)
                     np.save(jacobian_path + f'jac_{i:04}.npy', jac)
@@ -322,6 +338,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
                 if self.args.cov_bool:
                     mu, attn, L = self.model.forecast(batch_x)
+                    print(L.size())
                     L = L.cpu().detach().data.numpy()
                     np.save(L_path + f'L_{i:04}.npy', L)
 
@@ -335,7 +352,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     input = test_data.inverse_transform(input.squeeze(0)).reshape(shape)
                 
                 # selecting variable index to output images
-                si = 7
+                si = 0
                 gt = np.concatenate((input[0, :, si], true[0, :, si]), axis=0)
                 pd = np.concatenate((input[0, :, si], pred[0, :, si]), axis=0)
                 visual(gt, pd, os.path.join(folder_path, f'{i:04}.pdf'))
