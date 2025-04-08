@@ -316,7 +316,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
             preds.append(pred)
             trues.append(true)
-            if (i >= self.args.jac_init) and (i <= self.args.jac_end) and (i % self.args.jac_interval == 0):
+            if (i >= self.args.jac_init) and (i <= self.args.jac_end) and ((i-self.args.jac_init) % self.args.jac_interval == 0):
                 t = time.time()
                 print(f'elapse: {t-t0:.2}s')
                 t0 = t
@@ -338,7 +338,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
                 if self.args.cov_bool:
                     mu, attn, L = self.model.forecast(batch_x)
-                    print(L.size())
                     L = L.cpu().detach().data.numpy()
                     np.save(L_path + f'L_{i:04}.npy', L)
 
