@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch import optim
 from torch.autograd.functional import jacobian
 from torch.func import jacfwd, jacrev
+from scipy.linalg import fractional_matrix_power
 import os
 import time
 from datetime import datetime
@@ -61,7 +62,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 outputs, attn, L = self.model(batch_x, dec_inp)
             else:
                 outputs, L = self.model(batch_x, dec_inp)
-            if self.args.features == -1:
+            if self.args.features[0] == -1:
                 outputs = outputs[:, -self.args.pred_len:, :]
                 batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
             else:
@@ -75,7 +76,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 outputs, attn = self.model(batch_x, dec_inp)
             else:
                 outputs = self.model(batch_x, dec_inp)
-            if self.args.features == -1:
+            if self.args.features[0] == -1:
                 outputs = outputs[:, -self.args.pred_len:, :]
                 batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
             else:
@@ -98,31 +99,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 else:
                     loss = self.model_step(batch_x, batch_y, criterion)
 
-
-#                 # decoder input
-#                 dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:, :]).float().to(self.device)
-#                 # encoder - decoder
-#                 if self.args.use_amp:
-#                     with torch.cuda.amp.autocast():
-#                         if self.args.output_attention:
-#                             outputs, attn = self.model(batch_x, dec_inp)
-#                         else:
-#                             outputs = self.model(batch_x, dec_inp)
-#                 else:
-#                     if self.args.output_attention:
-#                         outputs, attn = self.model(batch_x, dec_inp)
-#                     else:
-#                         outputs = self.model(batch_x, dec_inp)
-#                 f_dim = -1 if self.args.features == 'MS' else 0
-#                 outputs = outputs[:, -self.args.pred_len:, f_dim:]
-#                 batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-
-#                 pred = outputs.detach().cpu()
-#                 true = batch_y.detach().cpu()
-# #                 print('pred', pred)
-# #                 print('true', true)
-#                 loss = criterion(pred, true)
-#                 print('loss', loss)
 
                 total_loss.append(loss.item())
         total_loss = np.average(total_loss)
@@ -169,22 +145,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 else:
                     loss = self.model_step(batch_x, batch_y, criterion)
                     train_loss.append(loss.item())
-
-                # if self.args.use_amp:
-                #     with torch.cuda.amp.autocast():
-                        
-                #         train_loss.append(loss.item())
-                # else:
-                #     if self.args.output_attention:
-                #         outputs, attn = self.model(batch_x, dec_inp)
-                #     else:
-                #         outputs = self.model(batch_x, dec_inp)
-
-                #     f_dim = -1 if self.args.features == 'MS' else 0
-                #     outputs = outputs[:, -self.args.pred_len:, f_dim:]
-                #     batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
-                #     loss = criterion(outputs, batch_y)
-                #     train_loss.append(loss.item())
 
                 if (i + 1) % self.args.prints == 0:
                     print("\titers: {0}, epoch: {1} | loss: {2:.7f}".format(i + 1, epoch + 1, loss.item()))
@@ -233,6 +193,21 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             # Recursive case: target is a higher-dimensional tensor
             return torch.stack([self.tensor_backward(subtarget, source) for subtarget in target])
 
+    def cal_jac(self,dec_inp, batch_x):
+        if self.args.output_attention or self.args.cov_bool:
+            if self.args.features[0] == -1:
+                fun = lambda x: self.model(x, dec_inp)[0]
+            else:
+                fun = lambda x: self.model(x, dec_inp)[0][:, :, self.args.features]
+        else:
+            if self.args.features[0] == -1:
+                fun = lambda x: self.model(x, dec_inp)
+            else:
+                fun = lambda x: self.model(x, dec_inp)[:, :, self.args.features]
+        jac = jacobian(fun, batch_x)
+        jac = jac.detach().cpu().numpy()[0,:,:,0,:,:].astype(np.float16)
+        return jac.reshape(jac.shape[0]*jac.shape[1], -1).astype(float)
+
     def test(self, setting, test=0):
         t0 = time.time()
         test_data, test_loader = self._get_data(flag='testall')
@@ -261,7 +236,9 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             scaler = torch.cuda.amp.GradScaler()
 
         self.model.eval()
-        # with torch.no_grad():
+        idx, batch_x, batch_y = next(iter(test_loader))
+        jacs = np.eye(batch_y.size(1)*batch_y.size(2))
+        nums = 0
         for i, (idx, batch_x, batch_y) in enumerate(test_loader):
             self.model.zero_grad()
             batch_x = batch_x.float().to(self.device)
@@ -292,12 +269,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 else:
                     outputs = self.model(batch_x, dec_inp)
 
-            # s = torch.sum(outputs)
-            # if self.args.use_amp:
-            #     scaler.scale(s).backward()
-            # else:
-
-            # f_dim = -1 if self.args.features == 'MS' else 0
             outputs = outputs[:, -self.args.pred_len:, :]
             batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
             outputs = outputs.detach().cpu().numpy()
@@ -307,7 +278,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 outputs = test_data.inverse_transform(outputs.squeeze(0)).reshape(shape)
                 batch_y = test_data.inverse_transform(batch_y.squeeze(0)).reshape(shape)
     
-            if self.args.features != -1:
+            if self.args.features[0] != -1:
                 outputs = outputs[:, :, self.args.features]
                 batch_y = batch_y[:, :, self.args.features]
 
@@ -316,47 +287,48 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
             preds.append(pred)
             trues.append(true)
-            if (i >= self.args.jac_init) and (i <= self.args.jac_end) and ((i-self.args.jac_init) % self.args.jac_interval == 0):
-                t = time.time()
-                print(f'elapse: {t-t0:.2}s')
-                t0 = t
-                if self.args.jacobian:
-                    if self.args.output_attention or self.args.cov_bool:
-                        if self.args.features == -1:
-                            fun = lambda x: self.model(x, dec_inp)[0]
+            if (i > self.args.jac_init) and (i <= self.args.jac_end):
+                if self.args.jac_mean and (i-self.args.jac_init) % self.args.jac_mean_interval == 0:
+                    jac = self.cal_jac(dec_inp, batch_x)
+                    jacs = jacs @ jac
+                    nums = nums + 1
+                if (i-self.args.jac_init) % self.args.jac_interval == 0:
+                    t = time.time()
+                    print(f'elapse: {t-t0:.2}s')
+                    t0 = t
+                    print("nums,", nums)
+                    if self.args.jacobian:
+                        jac = self.cal_jac(dec_inp, batch_x)
+                        if self.args.jac_mean:
+                            jacs = fractional_matrix_power(jacs, 1/nums)
+                            np.save(jacobian_path + f'jac_{i:04}.npy', jacs)
+                            jacs = np.eye(batch_y.shape[1]*batch_y.shape[2])
+                            nums = 0
                         else:
-                            fun = lambda x: self.model(x, dec_inp)[0][:, :, self.args.features]
-                    else:
-                        if self.args.features == -1:
-                            fun = lambda x: self.model(x, dec_inp)
-                        else:
-                            fun = lambda x: self.model(x, dec_inp)[:, :, self.args.features]
-                    jac = jacobian(fun, batch_x)
-                    jac = jac.detach().cpu().numpy()[0,:,:,0,:,:].astype(np.float16)
-                    np.save(jacobian_path + f'jac_{i:04}.npy', jac)
-                    print(f'saving jacobian: jac_{i:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
+                            np.save(jacobian_path + f'jac_{i:04}.npy', jac)
+                        print(f'saving jacobian: jac_{i:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
 
-                if self.args.cov_bool:
-                    mu, attn, L = self.model.forecast(batch_x)
-                    L = L.cpu().detach().data.numpy()
-                    np.save(L_path + f'L_{i:04}.npy', L)
+                    if self.args.cov_bool:
+                        mu, attn, L = self.model.forecast(batch_x)
+                        L = L.cpu().detach().data.numpy()
+                        np.save(L_path + f'L_{i:04}.npy', L)
 
-                if self.args.output_attention and attn is not None:
-                    attn = attn.astype(np.float16)
-                    np.save(attention_path + f'attn_{i:04}.npy', attn)
-                    print(f'saving attention: attn_{i:04}.npy(size: {attn.dtype.itemsize * attn.size // 1024}KB); ')
-                input = batch_x.detach().cpu().numpy()
-                if test_data.scale and self.args.inverse:
-                    shape = input.shape
-                    input = test_data.inverse_transform(input.squeeze(0)).reshape(shape)
-                
-                # selecting variable index to output images
-                si = 0
-                gt = np.concatenate((input[0, :, si], true[0, :, si]), axis=0)
-                pd = np.concatenate((input[0, :, si], pred[0, :, si]), axis=0)
-                visual(gt, pd, os.path.join(folder_path, f'{i:04}.pdf'))
-                if self.args.output_attention and attn is not None:
-                    print(f'saving fig: {i:04}.pdf')
+                    if self.args.output_attention and attn is not None:
+                        attn = attn.astype(np.float16)
+                        np.save(attention_path + f'attn_{i:04}.npy', attn)
+                        print(f'saving attention: attn_{i:04}.npy(size: {attn.dtype.itemsize * attn.size // 1024}KB); ')
+                    input = batch_x.detach().cpu().numpy()
+                    if test_data.scale and self.args.inverse:
+                        shape = input.shape
+                        input = test_data.inverse_transform(input.squeeze(0)).reshape(shape)
+                    
+                    # selecting variable index to output images
+                    si = 0
+                    gt = np.concatenate((input[0, :, si], true[0, :, si]), axis=0)
+                    pd = np.concatenate((input[0, :, si], pred[0, :, si]), axis=0)
+                    visual(gt, pd, os.path.join(folder_path, f'{i:04}.pdf'))
+                    if self.args.output_attention and attn is not None:
+                        print(f'saving fig: {i:04}.pdf')
 
         preds = np.array(preds)
         trues = np.array(trues)

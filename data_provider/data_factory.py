@@ -70,6 +70,7 @@ def data_provider(args, flag):
                 flag=flag,
                 size=[args.seq_len, args.pred_len],
                 features=args.features,
+                data_partition=args.data_partition,
                 target=args.target,
                 timeenc=timeenc,
                 freq=freq,

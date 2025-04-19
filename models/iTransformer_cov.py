@@ -67,7 +67,7 @@ class Model(nn.Module):
 
         dec_out = self.projection(enc_out).permute(0, 2, 1)[:, :, :N]
         if self.cov_bool:
-            if self.features == -1:
+            if self.features[0] == -1:
                 L_elements = self.fc_L(enc_out).permute(0, 2, 1)[:, :, :N]
             else:
                 L_elements = self.fc_L(enc_out).permute(0, 2, 1)[:, :, self.features]
