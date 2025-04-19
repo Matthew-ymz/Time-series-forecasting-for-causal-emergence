@@ -34,12 +34,13 @@ if __name__ == '__main__':
     parser.add_argument('--data_path', type=str, default='ETTh1.csv', help='data file')
     # parser.add_argument('--features', type=str, default='M',
     #                     help='forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate')
-    parser.add_argument('--features', type=int, nargs='+', default=-1, help='list for predicted dims, -1 for all dims')
+    parser.add_argument('--features', type=int, nargs='+', default=[-1], help='list for predicted dims, -1 for all dims')
     parser.add_argument('--target', type=str, default='OT', help='target feature in S or MS task')
     parser.add_argument('--freq', type=str, default='h',
                         help='freq for time features encoding, options:[s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly], you can also use more detailed freq like 15min or 3h')
     parser.add_argument('--checkpoints', type=str, default='./checkpoints/', help='location of model checkpoints')
     parser.add_argument('--fold_loc', type=str, required=False, default='normal', help='location of vali and test')
+    parser.add_argument('--data_partition', type=float, nargs='+', default=[0.7, 0.1, 0.2], help='partition for train, vali and test')
     
     # data sir
     parser.add_argument('--size_list', type=int, nargs='+', default=9000, help='dataset size for sir. Its sum is the total number of the init points.')
@@ -93,6 +94,8 @@ if __name__ == '__main__':
     parser.add_argument('--jac_init', type=int, default=1000, help='start time of jacobian output')
     parser.add_argument('--jac_end', type=int, default=2000, help='end time of jacobian output')
     parser.add_argument('--jac_interval', type=int, default=30, help='interval time of jacobian output')
+    parser.add_argument('--jac_mean', action='store_true', help='whether to mean jacobian')
+    parser.add_argument('--jac_mean_interval', type=int, default=5, help='interval time of sampling for calculating jacobian mean')
     parser.add_argument('--EI', action='store_true', help='whether to output EI')
     parser.add_argument('--cov_bool', action='store_true', help='whether to output covariance matrix')
     parser.add_argument('--channel_independence', type=int, default=0,
