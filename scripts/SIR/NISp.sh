@@ -8,7 +8,7 @@ python -u run.py \
   --root_path ./dataset/SIR/ \
   --model_id sir_iid_maxei \
   --model $model_name \
-  --prints 20 \
+  --prints 100 \
   --data SIR \
   --size_list 4000 \
   --steps 2 \
@@ -18,7 +18,6 @@ python -u run.py \
   --gamma 0.5 \
   --dt 0.01 \
   --target stage \
-  --features M \
   --seq_len 1 \
   --pred_len 1 \
   --downsample 1 \
@@ -28,11 +27,11 @@ python -u run.py \
   --d_model 64 \
   --batch_size 64 \
   --learning_rate 0.002 \
-  --patience 30 \
+  --patience 3 \
   --itr 1 \
-  --train_epochs 30 \
-  --fold_loc 1 \
+  --train_epochs 5 \
   --EI \
+  --cov_bool \
   --latent_size 2 \
   --lambdas 0.1 \
   --first_stage 2 \

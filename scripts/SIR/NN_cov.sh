@@ -3,7 +3,7 @@
 model_name=NN_cov
 
 python -u run.py \
-  --task_name nn_forecast \
+  --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/SIR/ \
   --model_id sir_iid \
@@ -17,7 +17,6 @@ python -u run.py \
   --gamma 0.5 \
   --dt 0.01 \
   --target stage \
-  --features M \
   --seq_len 1 \
   --pred_len 1 \
   --downsample 1 \
@@ -27,10 +26,9 @@ python -u run.py \
   --d_model 128 \
   --batch_size 64 \
   --learning_rate 0.01 \
-  --patience 10 \
+  --patience 2 \
   --itr 1 \
-  --train_epochs 10 \
-  --fold_loc 1 \
+  --train_epochs 3 \
   --seed 2050 \
   --cov_bool \
   --EI \

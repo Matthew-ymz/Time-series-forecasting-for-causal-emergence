@@ -24,7 +24,7 @@ Prepare your dataset according to the required format.
 Experiment scripts for benchmarks are provided in `./scripts/`. Example usage:
 ```bash
 # Forecasting example
-bash scripts/SIR/NN.sh
+bash scripts/SIR/NN_cov.sh
 ```
 
 ### 4. Custom Model Development

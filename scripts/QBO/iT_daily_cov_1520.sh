@@ -1,6 +1,11 @@
 #export CUDA_VISIBLE_DEVICES=0
 #2015-2016: 12419, 13880
-
+  # --jac_mean \
+  # --jac_init 12419 \
+  # --jac_end 15492 \
+  # --jac_interval 96 \
+  # --jac_mean_interval 15 \
+  
 model_name=iTransformer_cov
 
 python -u run.py \
@@ -34,11 +39,5 @@ python -u run.py \
   --train_epochs 1 \
   --inverse \
   --lradj type1 \
-  --jacobian \
-  --jac_mean \
-  --jac_init 12419 \
-  --jac_end 15492 \
-  --jac_interval 96 \
-  --jac_mean_interval 30 \
   --cov_bool \
   --loss_lam 0.001

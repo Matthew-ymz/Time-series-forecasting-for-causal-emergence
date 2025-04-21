@@ -37,6 +37,7 @@ class SIRModel(Dataset):
         self.sigma, self.rho = sigma, rho
         self.dt = dt
         self.interval = interval
+        self.scale = False
         self.init_total_number = np.sum(self.size_list)
 
         #self.data = self.simulate_multiseries(size_list)
