@@ -2,7 +2,6 @@ import argparse
 import os
 import torch
 from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast
-from exp.exp_nn_forecasting import Exp_NN_Forecast
 from exp.exp_maxei import Exp_MaxEI
 from exp.exp_imputation import Exp_Imputation
 from exp.exp_anomaly_detection import Exp_Anomaly_Detection
@@ -145,8 +144,6 @@ if __name__ == '__main__':
 
     if args.task_name == 'long_term_forecast':
         Exp = Exp_Long_Term_Forecast
-    elif args.task_name == 'nn_forecast':
-        Exp = Exp_NN_Forecast
     elif args.task_name == 'imputation':
         Exp = Exp_Imputation
     elif args.task_name == 'anomaly_detection':
@@ -156,7 +153,7 @@ if __name__ == '__main__':
     elif args.task_name == 'maxei':
         Exp = Exp_MaxEI
     else:
-        Exp = Exp_NN_Forecast
+        Exp = Exp_Long_Term_Forecast
 
     if args.is_training:
         for ii in range(args.itr):

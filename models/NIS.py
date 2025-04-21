@@ -46,6 +46,7 @@ class Model(nn.Module):
         self.B = configs.batch_size
         self.T = configs.seq_len
         self.N = configs.c_in
+        self.EI_bool = configs.EI
         self.dropout = nn.Dropout(p=0.1)
         self.enc_embedding = DataEmbedding_NN()
         if self.input_size % 2 != 0:
@@ -139,7 +140,7 @@ class Model(nn.Module):
         avg_log_jacobian = torch.log(det_list.abs()).mean()
         return count, avg_log_jacobian
     
-    def forward(self, x_t, EI_bool=False, L=1, num_samples=1000):
+    def forward(self, x_t, dec_inp=0, EI_bool=False, l=1, num_samples=1000):
         h_t = self.encoding(x_t)
        
         h_t1_hat = self.dynamics(h_t) + h_t
@@ -150,7 +151,7 @@ class Model(nn.Module):
         x_t1_hat = self.decoding(h_t1_hat)
 
         if EI_bool:
-            count, avg_log_jacobian = self.cal_EI_1(h_t, num_samples, L)
+            count, avg_log_jacobian = self.cal_EI_1(h_t, num_samples, l)
             ei_items = {"h_t": h_t,
                     "h_t1_hat": h_t1_hat,
                     "avg_log_jacobian": avg_log_jacobian,

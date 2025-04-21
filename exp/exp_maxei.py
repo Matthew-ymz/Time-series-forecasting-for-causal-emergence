@@ -1,5 +1,5 @@
 from data_provider.data_factory import data_provider
-from exp.exp_nn_forecasting import Exp_NN_Forecast
+from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast
 from utils.tools import EarlyStopping, adjust_learning_rate, visual
 from utils.metrics import metric
 from utils.ei import EI
@@ -21,7 +21,7 @@ def kde_density(X):
     log_density = kde.score_samples(X.cpu().data.numpy())
     return log_density
 
-class Exp_MaxEI(Exp_NN_Forecast):
+class Exp_MaxEI(Exp_Long_Term_Forecast):
     def __init__(self, args):
         super(Exp_MaxEI, self).__init__(args)
         self.weights = None
@@ -45,14 +45,14 @@ class Exp_MaxEI(Exp_NN_Forecast):
         self.weights = weights.float().to(self.device)
 
     def reweight(self, dataset):
-        inputs = torch.from_numpy(dataset.sir_input).float().to(device=self.device)
+        inputs = torch.from_numpy(dataset.input).float().to(device=self.device)
         h_t_all = self.model.encoding(inputs)
         self.update_weight(h_t_all)
 
     def model_step(self, idxs, batch_x, batch_y, criterion, stage_flag=1):
         if stage_flag == 1:
             outputs,_ = self.model(batch_x, EI_bool=False)
-            f_dim = -1 if self.args.features == 'MS' else 0
+            f_dim = 0
             outputs = outputs[:, -self.args.pred_len:, f_dim:]
             batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
             loss = criterion(outputs, batch_y)

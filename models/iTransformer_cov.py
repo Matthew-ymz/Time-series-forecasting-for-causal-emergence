@@ -130,9 +130,10 @@ class Model(nn.Module):
         output = self.projection(output)  # (batch_size, num_classes)
         return output, attns[0] # taking 1st layer only
 
-    def forward(self, x_enc, x_dec, mask=None):
-        if self.task_name == 'long_term_forecast' or self.task_name == 'short_term_forecast':
+    def forward(self, x_enc, x_dec, mask=None, EI_bool=False):
+        if self.task_name == 'long_term_forecast':
             dec_out, attn, L = self.forecast(x_enc)
+            ei_items = {"attn":attn, "L":L}
             result = dec_out[:, -self.pred_len:, :]  # [B, L, D]
         if self.task_name == 'imputation':
             dec_out, attn = self.imputation(x_enc, x_dec, mask)
@@ -143,14 +144,7 @@ class Model(nn.Module):
         if self.task_name == 'classification':
             dec_out, attn = self.classification(x_enc)
             result = dec_out  # [B, N]
-        
-        if self.output_attention:
-            if self.cov_bool:
-                return result, attn, L
-            else:
-                return result, attn
-        else:
-            if self.cov_bool:
-                return result, L
-            else:
-                return result
+
+
+        return result, ei_items
+

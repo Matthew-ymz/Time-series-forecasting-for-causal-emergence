@@ -28,9 +28,8 @@ class Model(nn.Module):
         self.relu = nn.LeakyReLU()
         self.dropout = nn.Dropout(p=0.1)
         self.func = lambda x: self.forecast(x)[0]
-        # Decoder
-        if self.task_name == 'nn_forecast':
-            self.projection = nn.Linear(configs.d_model, self.output_size, bias=True)
+        
+        self.projection = nn.Linear(configs.d_model, self.output_size, bias=True)
 
     def cal_EI_1(self, x_enc, num_samples=1000, L=1):
         jac_in = L * (2 * torch.rand(num_samples, self.seq_len, self.c_in, dtype=x_enc.dtype, device=x_enc.device) - 1)
@@ -43,9 +42,6 @@ class Model(nn.Module):
         count = mask.sum().item()
         det_list[mask] = 1  # 避免在 log 中计算 0
         avg_log_jacobian = torch.log(det_list.abs()).mean()
-        # else:
-        #     count = 0
-        #     avg_log_jacobian = 0
         return count, avg_log_jacobian
 
     def forecast(self, x_enc):
@@ -71,16 +67,21 @@ class Model(nn.Module):
             L = torch.diag_embed(L_elements).abs()
         else:
             L = 0
+        # if self.cov_bool:
+        #     if self.features[0] == -1:
+        #         L_elements = self.fc_L(enc_out).permute(0, 2, 1)[:, :, :N]
+        #     else:
+        #         L_elements = self.fc_L(enc_out).permute(0, 2, 1)[:, :, self.features]
+        #     L_elements = L_elements.reshape(-1, L_elements.size(1)*L_elements.size(2))    
+        #     L = torch.diag_embed(L_elements).abs()
+        # else:
+        #     L = 0
         dec_out = mu.reshape(B, self.pred_len, N)
-        # print("!!!!!!!!!!")
-        # print(dec_out)
-        # print(L)
         return dec_out, L
 
-    def forward(self, x_enc, EI_bool=False):
-        if self.task_name == 'nn_forecast':
-            dec_out, L = self.forecast(x_enc)
-            result = dec_out
+    def forward(self, x_enc, dec_inp=0, EI_bool=False):
+        dec_out, L = self.forecast(x_enc)
+        result = dec_out
 
         if EI_bool:
             count, avg_log_jacobian = self.cal_EI_1(x_enc)

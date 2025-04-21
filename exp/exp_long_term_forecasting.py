@@ -2,6 +2,7 @@ from data_provider.data_factory import data_provider
 from exp.exp_basic import Exp_Basic
 from utils.tools import EarlyStopping, adjust_learning_rate, visual
 from utils.metrics import metric
+from utils.ei import EI
 import torch
 import torch.nn as nn
 from torch import optim
@@ -55,13 +56,10 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             criterion = nn.MSELoss()
         return criterion
 
-    def model_step(self, batch_x, batch_y, criterion):
+    def model_step(self, idx, batch_x, batch_y, criterion):
         dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:,:]).float().to(self.device)
         if self.args.cov_bool:
-            if self.args.output_attention:
-                outputs, attn, L = self.model(batch_x, dec_inp)
-            else:
-                outputs, L = self.model(batch_x, dec_inp)
+            outputs, ei_items = self.model(batch_x, dec_inp)
             if self.args.features[0] == -1:
                 outputs = outputs[:, -self.args.pred_len:, :]
                 batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
@@ -70,7 +68,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 batch_y = batch_y[:, -self.args.pred_len:, self.args.features].to(self.device)
             outputs = outputs.reshape(-1, outputs.size(1)*outputs.size(2))
             batch_y = batch_y.reshape(-1, batch_y.size(1)*batch_y.size(2))
-            loss = criterion(outputs, L, batch_y)
+            loss = criterion(outputs, ei_items["L"], batch_y)
         else:
             if self.args.output_attention:
                 outputs, attn = self.model(batch_x, dec_inp)
@@ -84,26 +82,42 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 batch_y = batch_y[:, -self.args.pred_len:, self.args.features].to(self.device)
             loss = criterion(outputs, batch_y)
         return loss
-
+    
     def vali(self, vali_data, vali_loader, criterion):
         total_loss = []
         self.model.eval()
+        d_EI = 0
+        EI_data_x = torch.tensor([]).float().to(device=self.device)
+        EI_data_y = torch.tensor([]).float().to(device=self.device)
         with torch.no_grad():
             for i, (idx, batch_x, batch_y) in enumerate(vali_loader):
                 batch_x = batch_x.float().to(self.device)
                 batch_y = batch_y.float().to(self.device)
+                if self.args.EI:
+                    EI_data_x = torch.cat((EI_data_x, batch_x), dim=0)
+                    EI_data_y = torch.cat((EI_data_y, batch_y), dim=0)
 
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        loss = self.model_step(batch_x, batch_y, criterion)      
+                        loss = self.model_step(idx, batch_x, batch_y, criterion)      
                 else:
-                    loss = self.model_step(batch_x, batch_y, criterion)
-
+                    loss = self.model_step(idx, batch_x, batch_y, criterion)
 
                 total_loss.append(loss.item())
+
+            if self.args.EI:
+                _,ei_items = self.model(EI_data_x, EI_bool=self.args.EI)
+                if "NIS" in self.args.model:
+                    h_t1 = self.model.encoding(EI_data_y)
+                else:
+                    h_t1 = EI_data_y.reshape(-1, EI_data_y.size(1)*EI_data_y.size(2))
+                ei_items['h_t1'] = h_t1
+                d_EI, term1, term2 = self.EI(ei_items=ei_items)
+                print("term1:",term1.item())
+                print("term2:",term2.item())
         total_loss = np.average(total_loss)
         self.model.train()
-        return total_loss
+        return total_loss, d_EI
 
     def train(self, setting):
         train_data, train_loader = self._get_data(flag='train')
@@ -126,6 +140,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             scaler = torch.cuda.amp.GradScaler()
 
         for epoch in range(self.args.train_epochs):
+            if self.args.EI:
+                self.EI = EI()
             iter_count = 0
             train_loss = []
 
@@ -140,10 +156,10 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 # encoder - decoder
                 if self.args.use_amp:
                     with torch.cuda.amp.autocast():
-                        loss = self.model_step(batch_x, batch_y, criterion)
+                        loss = self.model_step(idx, batch_x, batch_y, criterion)
                         train_loss.append(loss.item())
                 else:
-                    loss = self.model_step(batch_x, batch_y, criterion)
+                    loss = self.model_step(idx, batch_x, batch_y, criterion)
                     train_loss.append(loss.item())
 
                 if (i + 1) % self.args.prints == 0:
@@ -164,8 +180,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
-            vali_loss = self.vali(vali_data, vali_loader, criterion)
-            test_loss = self.vali(test_data, test_loader, criterion)
+            vali_loss = self.vali(vali_data, vali_loader, criterion)[0]
+            test_loss = self.vali(test_data, test_loader, criterion)[0]
 
             print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
                 epoch + 1, train_steps, train_loss, vali_loss, test_loss))
@@ -296,7 +312,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     t = time.time()
                     print(f'elapse: {t-t0:.2}s')
                     t0 = t
-                    print("nums,", nums)
                     if self.args.jacobian:
                         jac = self.cal_jac(dec_inp, batch_x)
                         if self.args.jac_mean:
