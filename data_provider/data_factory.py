@@ -1,5 +1,5 @@
 from data_provider.data_loader import PSMSegLoader, \
-    MSLSegLoader, SMAPSegLoader, SMDSegLoader, SWATSegLoader, Dataset_Ca2p, SIRModel
+    MSLSegLoader, SMAPSegLoader, SMDSegLoader, SWATSegLoader, Dataset_Ca2p, SIRModel, Dataset_couzin
 from data_provider.uea import collate_fn
 from torch.utils.data import DataLoader
 
@@ -13,6 +13,7 @@ data_dict = {
     'QBO': Dataset_Ca2p,
     'custom': Dataset_Ca2p,
     'SIR': SIRModel,
+    'Couzin': Dataset_couzin,
 }
 
 
@@ -35,7 +36,7 @@ def data_provider(args, flag):
     if args.task_name == 'long_term_forecast' or 'nn_forecast':
         if args.data == 'm4':
             drop_last = False
-        if args.data == 'Ca2p':
+        elif args.data == 'Ca2p':
             data_set = Data(
                 root_path=args.root_path,
                 data_path=args.data_path,
@@ -49,7 +50,16 @@ def data_provider(args, flag):
                 fold_loc=args.fold_loc,
                 seasonal_patterns=args.seasonal_patterns
             )
-        if args.data == "SIR":
+        elif args.data == 'Couzin':
+            data_set = Data(
+                root_path=args.root_path,
+                data_path=args.data_path,
+                flag=flag,
+                size=[args.seq_len, args.pred_len],
+                downsample=args.downsample,
+                fold_loc=args.fold_loc,
+            )
+        elif args.data == "SIR":
             data_set = Data(
                 path=args.root_path,
                 size_list=args.size_list,

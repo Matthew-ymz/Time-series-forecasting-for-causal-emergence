@@ -224,6 +224,17 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         jac = jac.detach().cpu().numpy()[0,:,:,0,:,:].astype(np.float16)
         return jac.reshape(jac.shape[0]*jac.shape[1], -1).astype(float)
 
+    def cal_cov(self,batch_x):
+        if self.args.cov_bool:
+            if "Transformer" in self.args.model:
+                mu, attn, L = self.model.forecast(batch_x)
+            else:
+                mu, L = self.model.forecast(batch_x)
+            L = L.cpu().detach().data.numpy()
+        else:
+            L = np.eye(batch_x.size(1)*batch_x.size(2))
+        return L[0]
+
     def test(self, setting, test=0):
         t0 = time.time()
         test_data, test_loader = self._get_data(flag='testall')
@@ -242,11 +253,9 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         jacobian_path = './results/jacobian/' + setting + '/'
         if self.args.jacobian and (not os.path.exists(jacobian_path)):
             os.makedirs(jacobian_path)
-
-        if self.args.cov_bool:
-            L_path = './results/cov_L/' + setting + '/'
-            if self.args.jacobian and (not os.path.exists(L_path)):
-                os.makedirs(L_path)
+        L_path = './results/cov_L/' + setting + '/'
+        if self.args.cov_bool and (not os.path.exists(L_path)):
+            os.makedirs(L_path)
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
@@ -254,6 +263,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         self.model.eval()
         idx, batch_x, batch_y = next(iter(test_loader))
         jacs = np.eye(batch_y.size(1)*batch_y.size(2))
+        Ls = np.eye(batch_y.size(1)*batch_y.size(2))
         nums = 0
         for i, (idx, batch_x, batch_y) in enumerate(test_loader):
             self.model.zero_grad()
@@ -306,27 +316,37 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             if (i > self.args.jac_init) and (i <= self.args.jac_end):
                 if self.args.jac_mean and (i-self.args.jac_init) % self.args.jac_mean_interval == 0:
                     jac = self.cal_jac(dec_inp, batch_x)
+                    L = self.cal_cov(batch_x)
                     jacs = jacs @ jac
+                    Ls = Ls @ L
                     nums = nums + 1
                 if (i-self.args.jac_init) % self.args.jac_interval == 0:
                     t = time.time()
                     print(f'elapse: {t-t0:.2}s')
                     t0 = t
                     if self.args.jacobian:
-                        jac = self.cal_jac(dec_inp, batch_x)
                         if self.args.jac_mean:
                             jacs = fractional_matrix_power(jacs, 1/nums)
                             np.save(jacobian_path + f'jac_{i:04}.npy', jacs)
                             jacs = np.eye(batch_y.shape[1]*batch_y.shape[2])
-                            nums = 0
                         else:
+                            jac = self.cal_jac(dec_inp, batch_x)
                             np.save(jacobian_path + f'jac_{i:04}.npy', jac)
                         print(f'saving jacobian: jac_{i:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
-
                     if self.args.cov_bool:
-                        mu, attn, L = self.model.forecast(batch_x)
-                        L = L.cpu().detach().data.numpy()
-                        np.save(L_path + f'L_{i:04}.npy', L)
+                        if self.args.jac_mean:
+                            # import pdb; pdb.set_trace()
+                            Ls = fractional_matrix_power(Ls, 1/nums)
+                            np.save(L_path + f'L_{i:04}.npy', Ls)
+                            Ls = np.eye(batch_y.shape[1]*batch_y.shape[2])
+                            nums = 0
+                        else:
+                            L = self.cal_cov(batch_x)
+                            np.save(L_path + f'L_{i:04}.npy', L)
+                            
+                    
+
+                        
 
                     if self.args.output_attention and attn is not None:
                         attn = attn.astype(np.float16)

@@ -24,7 +24,8 @@ class Model(nn.Module):
         self.enc_embedding = DataEmbedding_NN()
         self.fc1 = nn.Linear(self.c_in * self.seq_len, configs.d_model)
         self.fc2 = nn.Linear(configs.d_model, configs.d_model)
-        self.fc_L = nn.Linear(configs.d_model, self.output_size) 
+        #self.fc_L = nn.Linear(configs.d_model, self.output_size) 
+        self.fc_L = nn.Linear(configs.d_model, self.output_size * (self.output_size + 1) // 2) 
         self.relu = nn.LeakyReLU()
         self.dropout = nn.Dropout(p=0.1)
         self.func = lambda x: self.forecast(x)[0]
@@ -64,7 +65,12 @@ class Model(nn.Module):
         mu = self.projection(enc_out) 
         if self.cov_bool:
             L_elements = self.fc_L(enc_out)  # Cholesky 分解的下三角部分         
-            L = torch.diag_embed(L_elements).abs()
+            # L = torch.diag_embed(L_elements).abs()
+            L = torch.zeros(B, self.output_size, self.output_size, device=x_enc.device)  
+            indices = torch.tril_indices(row=self.output_size, col=self.output_size, offset=0)  
+            L[:, indices[0], indices[1]] = L_elements  
+            L.diagonal(dim1=1, dim2=2).exp_()
+            L = torch.matmul(L, L.transpose(1, 2))  
         else:
             L = 0
         # if self.cov_bool:
