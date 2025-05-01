@@ -1,0 +1,14 @@
+*.nc
+*.npy
+*.pdf
+
+checkpoints/**
+__pycache__/
+*.py[cod]
+*$py.class
+
+.ipynb_checkpoints
+
+*.h5
+*.tar
+*.tar.gzcheckpoints/
