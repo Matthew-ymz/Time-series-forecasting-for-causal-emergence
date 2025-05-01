@@ -204,13 +204,10 @@ class Dataset_Ca2p(Dataset):
             border1s = [ds_len - num_train - self.seq_len, 0,        num_vali - self.seq_len, 0]
             border2s = [ds_len,                            num_vali, num_vali + num_test,     ds_len]
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
         else: 
             print("Error for train_vali_test")
 =======
 >>>>>>> a983ec0f8702db5424d561a02ab57bc841669368
->>>>>>> 4d6e34c0d9595d95d63c6696cdf985190b8ac1ab
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
 
