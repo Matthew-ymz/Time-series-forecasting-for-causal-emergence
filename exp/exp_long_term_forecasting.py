@@ -343,10 +343,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         else:
                             L = self.cal_cov(batch_x)
                             np.save(L_path + f'L_{i:04}.npy', L)
-                            
-                    
-
-                        
 
                     if self.args.output_attention and attn is not None:
                         attn = attn.astype(np.float16)

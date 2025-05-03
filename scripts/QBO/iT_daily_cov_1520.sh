@@ -13,7 +13,7 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/QBO/ \
   --data_path daily_1979_2023_16436_37.csv \
-  --model_id iT_cov_qbo_daily_1520 \
+  --model_id iT_cov_qbo_daily \
   --model $model_name \
   --data QBO \
   --data_partition 0.8 0.1 0.1 \
@@ -34,10 +34,17 @@ python -u run.py \
   --batch_size 8 \
   --prints 300 \
   --learning_rate 0.001 \
-  --patience 1 \
+  --patience 7 \
   --itr 1 \
-  --train_epochs 1 \
+  --train_epochs 30 \
   --inverse \
   --lradj type1 \
   --cov_bool \
-  --loss_lam 0.001
+  --loss_lam 0.001 \
+  --jacobian \
+  --jac_mean \
+  --jac_init 12419 \
+  --jac_end 15492 \
+  --jac_interval 96 \
+  --jac_mean_interval 15 \
+

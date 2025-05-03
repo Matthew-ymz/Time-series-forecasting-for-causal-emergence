@@ -203,21 +203,13 @@ class Dataset_Ca2p(Dataset):
         elif self.fold_loc == 'vali_test_first':
             border1s = [ds_len - num_train - self.seq_len, 0,        num_vali - self.seq_len, 0]
             border2s = [ds_len,                            num_vali, num_vali + num_test,     ds_len]
-<<<<<<< HEAD
         else: 
             print("Error for train_vali_test")
-=======
->>>>>>> a983ec0f8702db5424d561a02ab57bc841669368
         border1 = border1s[self.set_type]
         border2 = border2s[self.set_type]
 
-        # if self.features == 'M' or self.features == 'MS':
-        #     # cols_data = df_raw.columns[1:-1]
         cols_data = df_raw.columns[1:]
         df_data = df_raw[cols_data]
-        # elif self.features == 'S':
-        #     assert self.target in cols
-        #     df_data = df_raw[[self.target]]
 
         if self.scale:
             train_data = df_data[border1s[0]:border2s[0]]
