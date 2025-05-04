@@ -7,8 +7,8 @@ for sigma in 0.05 0.1 1.0; do
     scripts/SIR/NISp_noise.sh $sigma 4
 done
 
-for att in '1' '30' '100' '200'; do
-    scripts/Couzin/iT_cov_phaset.sh $att 4
+for att in '20' '40' '60' '80' '120' '140' '160' '180' '220'; do
+    scripts/Couzin/iT_cov_phaset.sh $att 9
 done
 
 bash scripts/SIR/NIS.sh
