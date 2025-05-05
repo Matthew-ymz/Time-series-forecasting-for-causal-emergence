@@ -85,6 +85,7 @@ if __name__ == '__main__':
                         help='whether to use distilling in encoder, using this argument means not using distilling',
                         default=True)
     parser.add_argument('--dropout', type=float, default=0.1, help='dropout')
+    parser.add_argument('--freq_loss', action='store_true', help='whether to use loss in frequence domain')
     parser.add_argument('--embed', type=str, default='timeF',
                         help='time features encoding, options:[timeF, fixed, learned]')
     parser.add_argument('--activation', type=str, default='gelu', help='activation')

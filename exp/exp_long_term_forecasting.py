@@ -38,7 +38,11 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         return model_optim
 
     def _select_criterion(self,cov_b=False, lam=0):
-        criterion0 = nn.MSELoss()
+        if self.args.freq_loss:
+            def criterion0(outputs, batch_y):
+                return (torch.fft.rfft(outputs, dim=1) - torch.fft.rfft(batch_y, dim=1)).abs().mean()  
+        else:
+            criterion0 = nn.MSELoss()
         def nll_loss(mu, L, y):
             loss1 = criterion0(mu, y)
             diff = y - mu  # 形状: (batch_size, n)
@@ -48,12 +52,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             log_det = 2 * torch.sum(torch.log(L_diag), dim=-1)  # 形状: (batch_size,)
             n = L.shape[-1]  # 维度
             log_prob = -0.5 * (n * torch.log(2 * torch.tensor(torch.pi)) + log_det + mahalanobis)  # 形状: (batch_size,)
-            return loss1 - lam * log_prob.mean()
+            return (1-lam) * loss1 - lam * log_prob.mean()
 
         if cov_b:
             criterion = nll_loss
         else:
-            criterion = nn.MSELoss()
+            criterion = criterion0
         return criterion
 
     def model_step(self, idx, batch_x, batch_y, criterion):
@@ -377,7 +381,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         print('mse:{}, mae:{}'.format(mse, mae))
         f = open("result_long_term_forecast.txt", 'a')
         f.write(setting + "  \n")
-        f.write('mse:{}, mae:{}'.format(mse, mae))
+        f.write('mse:{}, mae:{}, rmse:{}, mape:{}, mspe:{}'.format(mse, mae, rmse, mape, mspe))
         f.write('\n')
         f.write('\n')
         f.close()
