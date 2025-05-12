@@ -79,7 +79,7 @@ class Exp_MaxEI(Exp_Long_Term_Forecast):
             os.makedirs(path)
 
         time_now = time.time()
-
+        
         train_steps = len(train_loader)
         early_stopping = EarlyStopping(patience=self.args.patience, verbose=True)
 

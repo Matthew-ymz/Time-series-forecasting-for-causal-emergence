@@ -12,7 +12,6 @@ import numpy as np
 
 if __name__ == '__main__':
     
-
     parser = argparse.ArgumentParser(description='iTransformer')
 
     # basic config
@@ -65,7 +64,7 @@ if __name__ == '__main__':
 
     # anomaly detection task
     parser.add_argument('--anomaly_ratio', type=float, default=0.25, help='prior anomaly ratio (%)')
-
+    
     # model define
     parser.add_argument('--top_k', type=int, default=5, help='for TimesBlock')
     parser.add_argument('--num_kernels', type=int, default=6, help='for Inception')
