@@ -181,3 +181,33 @@ mse:71.9049301147461, mae:3.7707204818725586, rmse:8.479677200317383, mape:inf, 
 long_term_forecast_iT_qbo_daily_iTransformer_cov_QBO_ft-1_sl30_pl30_dm512_nh8_el4_dl1_df512_fc3_flocnormal_lam0.001_dtTrue_Exp_0  
 mse:99.08655548095703, mae:4.6848626136779785, rmse:9.954222679138184, mape:inf, mspe:inf
 
+long_term_forecast_iT_cov_qbo_daily_iTransformer_cov_QBO_ft-1_sl10_pl10_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:9.198878288269043, mae:1.6266101598739624, rmse:3.0329651832580566, mape:inf, mspe:inf
+
+long_term_forecast_iT_cov_qbo_daily_iTransformer_cov_QBO_ft-1_sl20_pl20_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:81.41168212890625, mae:4.578309535980225, rmse:9.022842407226562, mape:inf, mspe:inf
+
+long_term_forecast_iT_cov_qbo_daily_iTransformer_cov_QBO_ft-1_sl30_pl30_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:34.38722229003906, mae:2.8179521560668945, rmse:5.8640618324279785, mape:inf, mspe:inf
+
+long_term_forecast_iT_cov_qbo_daily_iTransformer_cov_QBO_ft-1_sl40_pl40_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:73.91231536865234, mae:3.9257731437683105, rmse:8.597227096557617, mape:inf, mspe:inf
+
+long_term_forecast_iT_cov_qbo_daily_iTransformer_cov_QBO_ft-1_sl50_pl50_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:159.6241912841797, mae:5.82370662689209, rmse:12.634246826171875, mape:inf, mspe:inf
+
+long_term_forecast_iT_cov_qbo_daily_iTransformer_cov_QBO_ft-1_sl60_pl60_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:94.47357940673828, mae:4.557592868804932, rmse:9.719752311706543, mape:inf, mspe:inf
+
+long_term_forecast_iT_cov_qbo_daily_iTransformer_cov_QBO_ft-1_sl70_pl70_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:162.04342651367188, mae:5.845934867858887, rmse:12.72962760925293, mape:inf, mspe:inf
+
+long_term_forecast_cov_qbo_daily_seqlen40_iTransformer_cov_QBO_ft-1_sl40_pl40_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:73.91231536865234, mae:3.9257731437683105, rmse:8.597227096557617, mape:inf, mspe:inf
+
+long_term_forecast_cov_qbo_daily_seqlen40_iTransformer_cov_QBO_ft-1_sl40_pl40_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:73.91231536865234, mae:3.9257731437683105, rmse:8.597227096557617, mape:inf, mspe:inf
+
+long_term_forecast_cov_qbo_daily_seqlen40_iTransformer_cov_QBO_ft-1_sl40_pl40_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:73.91231536865234, mae:3.9257731437683105, rmse:8.597227096557617, mape:inf, mspe:inf
+

@@ -5,6 +5,8 @@
   # --jac_end 15492 \
   # --jac_interval 96 \
   # --jac_mean_interval 15 \
+
+seq_len=40
   
 model_name=iTransformer_cov
 
@@ -13,14 +15,14 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/QBO/ \
   --data_path daily_1979_2023_16436_37.csv \
-  --model_id iT_cov_qbo_daily \
+  --model_id cov_qbo_daily_nofreq_loss \
   --model $model_name \
   --data QBO \
   --data_partition 0.79 0.1 0.11 \
   --fold_loc 'vali_first' \
   --target stage \
-  --seq_len 35 \
-  --pred_len 35 \
+  --seq_len $seq_len \
+  --pred_len $seq_len \
   --downsample 1 \
   --e_layers 4 \
   --d_layers 1 \
@@ -44,6 +46,6 @@ python -u run.py \
   --jacobian \
   --jac_mean \
   --jac_init 12554 \
-  --jac_end 13859 \
+  --jac_end 15492 \
   --jac_interval 96 \
   --jac_mean_interval 15 \

@@ -155,6 +155,51 @@ if __name__ == '__main__':
     else:
         Exp = Exp_Long_Term_Forecast
 
+    def set_setting(args, ii):
+        if args.data == "SIR":
+            if args.model_id == "sir_iid_noise":
+                setting = '{}_{}_{}_samp{}_sigma{}_ls{}_lam{}_dmodel{}_seed{}'.format(
+                args.task_name,
+                args.model_id,
+                args.model,
+                sum(args.size_list),
+                args.sigma,
+                args.latent_size,
+                args.lambdas,
+                args.d_model,
+                seed)
+            else:
+                setting = '{}_{}_{}_samp{}_sigma{}_rho{}_lam{}_dmodel{}_{}'.format(
+                args.task_name,
+                args.model_id,
+                args.model,
+                sum(args.size_list),
+                args.sigma,
+                args.rho,
+                args.lambdas,
+                args.d_model,
+                ii)
+        else:
+            setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_lam{}_dt{}_{}_{}'.format(
+                args.task_name,
+                args.model_id,
+                args.model,
+                args.data,
+                args.features[0],
+                args.seq_len,
+                args.pred_len,
+                args.d_model,
+                args.n_heads,
+                args.e_layers,
+                args.d_layers,
+                args.d_ff,
+                args.factor,
+                args.fold_loc,
+                args.loss_lam,
+                args.distil,
+                args.des, ii)
+        return setting
+    
     if args.is_training:
         for ii in range(args.itr):
             seed = args.seed + ii
@@ -163,48 +208,7 @@ if __name__ == '__main__':
             np.random.seed(seed)
             # setting record of experiments
             exp = Exp(args)  # set experiments
-            if args.data == "SIR":
-                if args.model_id == "sir_iid_noise":
-                    setting = '{}_{}_{}_samp{}_sigma{}_ls{}_lam{}_dmodel{}_seed{}'.format(
-                    args.task_name,
-                    args.model_id,
-                    args.model,
-                    sum(args.size_list),
-                    args.sigma,
-                    args.latent_size,
-                    args.lambdas,
-                    args.d_model,
-                    seed)
-                else:
-                    setting = '{}_{}_{}_samp{}_sigma{}_rho{}_lam{}_dmodel{}_{}'.format(
-                    args.task_name,
-                    args.model_id,
-                    args.model,
-                    sum(args.size_list),
-                    args.sigma,
-                    args.rho,
-                    args.lambdas,
-                    args.d_model,
-                    ii)
-            else:
-                setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_lam{}_dt{}_{}_{}'.format(
-                    args.task_name,
-                    args.model_id,
-                    args.model,
-                    args.data,
-                    args.features[0],
-                    args.seq_len,
-                    args.pred_len,
-                    args.d_model,
-                    args.n_heads,
-                    args.e_layers,
-                    args.d_layers,
-                    args.d_ff,
-                    args.factor,
-                    args.fold_loc,
-                    args.loss_lam,
-                    args.distil,
-                    args.des, ii)
+            setting = set_setting(args, ii)
 
             print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
             exp.train(setting)
@@ -214,24 +218,7 @@ if __name__ == '__main__':
             torch.cuda.empty_cache()
     else:
         ii = 0
-        setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_eb{}_dt{}_{}_{}'.format(
-            args.task_name,
-            args.model_id,
-            args.model,
-            args.data,
-            args.features,
-            args.seq_len,
-            args.pred_len,
-            args.d_model,
-            args.n_heads,
-            args.e_layers,
-            args.d_layers,
-            args.d_ff,
-            args.factor,
-            args.fold_loc,
-            args.embed,
-            args.distil,
-            args.des, ii)
+        setting = set_setting(args, ii)
 
         exp = Exp(args)  # set experiments
         print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))

@@ -11,5 +11,8 @@ for att in '20' '40' '60' '80' '120' '140' '160' '180' '220'; do
     scripts/Couzin/iT_cov_phaset.sh $att 9
 done
 
-bash scripts/SIR/NIS.sh
-bash scripts/SIR/NN_cov.sh
+chmod +x scripts/QBO/iT_daily_cov_new.sh
+
+for seq_len in 10 20 30 40 50 60 70 80 90; do
+    scripts/QBO/iT_daily_cov_new.sh $seq_len 9
+done
