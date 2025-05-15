@@ -13,6 +13,6 @@ done
 
 chmod +x scripts/QBO/iT_daily_cov_new.sh
 
-for seq_len in 10 20 30 40 50 60 70 80 90; do
-    scripts/QBO/iT_daily_cov_new.sh $seq_len 9
+for seq_len in 39 41; do
+    scripts/QBO/iT_cov_train.sh $seq_len 2
 done
