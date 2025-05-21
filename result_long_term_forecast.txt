@@ -223,3 +223,6 @@ mse:73.91231536865234, mae:3.9257731437683105, rmse:8.597227096557617, mape:inf,
 long_term_forecast_cov_qbo_daily_iTransformer_cov_QBO_ft-1_sl41_pl41_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
 mse:78.5522689819336, mae:4.009918212890625, rmse:8.862972259521484, mape:inf, mspe:inf
 
+long_term_forecast_cov_daily_750hpa_iTransformer_cov_QBO_ft-1_sl40_pl40_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:63.38568878173828, mae:4.243640422821045, rmse:7.961513042449951, mape:inf, mspe:inf
+

@@ -1,16 +1,14 @@
-echo "====== 本次运行参数 ======"
-echo "seq_len: $1"
 
-seq_len=$1
-  
+seq_len=40
+#data_path=daily_1979_2023_16436_37
 model_name=iTransformer_cov
 
 python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/QBO/ \
-  --data_path daily_1979_2023_16436_37.csv \
-  --model_id cov_qbo_daily \
+  --data_path daily_1979_2023_16436_750hpa.csv \
+  --model_id cov_daily_750hpa \
   --model $model_name \
   --data QBO \
   --data_partition 0.79 0.1 0.11 \
