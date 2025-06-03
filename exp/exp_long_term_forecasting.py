@@ -43,15 +43,13 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 return (torch.fft.rfft(outputs, dim=1) - torch.fft.rfft(batch_y, dim=1)).abs().mean()  
         else:
             criterion0 = nn.MSELoss()
-        def nll_loss(mu, L, y, log_L=True):
+        def nll_loss(mu, L, y):
             loss1 = criterion0(mu, y)
             diff = y - mu  # 形状: (batch_size, n)
             L_diag = torch.diagonal(L, dim1=-2, dim2=-1)  # 形状: (batch_size, n)
-            if log_L:
-                L_diag = torch.exp(L_diag)
-            z = diff / L_diag #torch.exp(L_diag)  # 形状: (batch_size, n)
+            z = diff / torch.exp(L_diag)  # 形状: (batch_size, n)
             mahalanobis = torch.sum(z**2, dim=-1)  # 形状: (batch_size,)
-            log_det = 2 * torch.sum(torch.log(L_diag), dim=-1)  # 形状: (batch_size,)
+            log_det = 2 * torch.sum(L_diag, dim=-1)  # 形状: (batch_size,)
             n = L.shape[-1]  # 维度
             log_prob = -0.5 * (n * torch.log(2 * torch.tensor(torch.pi)) + log_det + mahalanobis)  # 形状: (batch_size,)
             #print("loss1:{0}  log_prob:{1}".format(loss1.item(),log_prob.mean().item()))

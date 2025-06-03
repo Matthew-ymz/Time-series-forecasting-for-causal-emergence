@@ -6,15 +6,15 @@ python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/Couzin/ \
-  --data_path swarm_30_10000.csv \
-  --model_id iT_cov_swarm \
+  --data_path swarm_to_pa_10000.csv \
+  --model_id MSE_loss \
   --model $model_name \
   --data Couzin \
-  --data_partition 0.7 0.1 0.2 \
-  --fold_loc 'normal' \
+  --data_partition 0.8 0.1 0.1 \
+  --fold_loc 'vali_first' \
   --target stage \
-  --seq_len 20 \
-  --pred_len 20 \
+  --seq_len 25 \
+  --pred_len 25 \
   --downsample 1 \
   --e_layers 4 \
   --d_layers 1 \
@@ -30,14 +30,14 @@ python -u run.py \
   --learning_rate 0.001 \
   --patience 7 \
   --itr 1 \
-  --train_epochs 7 \
+  --train_epochs 30 \
   --inverse \
   --lradj type1 \
   --cov_bool \
-  --loss_lam 0.001 \
+  --loss_lam 0.1 \
   --jacobian \
   --jac_mean \
-  --jac_init 5000 \
-  --jac_end 7000 \
+  --jac_init 7500 \
+  --jac_end 8500 \
   --jac_interval 100 \
   --jac_mean_interval 10 \

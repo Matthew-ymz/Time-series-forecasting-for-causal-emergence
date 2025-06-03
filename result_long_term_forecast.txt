@@ -289,3 +289,18 @@ mse:46.38337707519531, mae:3.1737592220306396, rmse:6.810534477233887, mape:inf,
 long_term_forecast_cov_daily_best_review_logL_iTransformer_cov_QBO_ft-1_sl40_pl40_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_5  
 mse:63.711971282958984, mae:3.731372594833374, rmse:7.981977939605713, mape:inf, mspe:inf
 
+long_term_forecast_iT_cov_swarm_iTransformer_cov_Couzin_ft-1_sl20_pl20_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
+mse:0.35066553950309753, mae:0.3906487226486206, rmse:0.5921701788902283, mape:0.00015457186964340508, mspe:5.4726363885038154e-08
+
+long_term_forecast_init_try_iTransformer_cov_Couzin_ft-1_sl20_pl20_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.01_dtTrue_Exp_0  
+mse:0.3102230727672577, mae:0.37294188141822815, rmse:0.5569767355918884, mape:0.00014742050552740693, mspe:4.827553823361086e-08
+
+long_term_forecast_init_try_iTransformer_cov_Couzin_ft-1_sl20_pl20_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.1_dtTrue_Exp_0  
+mse:0.29298582673072815, mae:0.3643907308578491, rmse:0.5412816405296326, mape:0.00014409818686544895, mspe:4.5627938760617326e-08
+
+long_term_forecast_freq_loss_iTransformer_cov_Couzin_ft-1_sl20_pl20_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.1_dtTrue_Exp_0  
+mse:1.931237816810608, mae:1.2065036296844482, rmse:1.3896898031234741, mape:0.0004799620364792645, mspe:3.0917254889573087e-07
+
+long_term_forecast_MSE_loss_iTransformer_cov_Couzin_ft-1_sl25_pl25_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.1_dtTrue_Exp_0  
+mse:0.6559828519821167, mae:0.5656137466430664, rmse:0.8099277019500732, mape:0.00022407929645851254, mspe:1.0270326100680904e-07
+
