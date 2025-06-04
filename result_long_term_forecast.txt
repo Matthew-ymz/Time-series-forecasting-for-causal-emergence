@@ -304,3 +304,6 @@ mse:1.931237816810608, mae:1.2065036296844482, rmse:1.3896898031234741, mape:0.0
 long_term_forecast_MSE_loss_iTransformer_cov_Couzin_ft-1_sl25_pl25_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.1_dtTrue_Exp_0  
 mse:0.6559828519821167, mae:0.5656137466430664, rmse:0.8099277019500732, mape:0.00022407929645851254, mspe:1.0270326100680904e-07
 
+long_term_forecast_MSE_loss_iTransformer_cov_Couzin_ft-1_sl25_pl25_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.1_dtTrue_Exp_0  
+mse:0.6559828519821167, mae:0.5656137466430664, rmse:0.8099277019500732, mape:0.00022407929645851254, mspe:1.0270326100680904e-07
+

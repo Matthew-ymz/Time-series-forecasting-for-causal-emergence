@@ -64,7 +64,7 @@ def svd_jacs(test_id_first, start, end, interval, seed, eps):
 
     return jacs, us, vts, mats, Sigs
 
-def plot_singular_cum(test_id_first, eps = 'all', seed = 0, window=5, window2='all', start=1, end=16435, interval=108, seq_len=30, log_bool=False):
+def plot_singular_cum(test_id_first, eps = 'all', seed = 0, window=5, window2='all', start=1, end=16435, interval=108, log_bool=False):
     singular, us, vts, mats, Sigs = svd_jacs(test_id_first, start, end, interval, seed, eps)
     gn_dic = {}
     gn_dic_std = {}
@@ -117,7 +117,7 @@ def analysis_u(us, seq_len, dims, start, end, interval, target):
             u_col1 = u_col1.reshape(seq_len,dims)
             u_col1 = np.abs(u_col1)
             n_ticks = u_col1.shape[1]
-            plt.figure(figsize=(8,4),dpi=150)
+            plt.figure(dpi=100)
             sns.heatmap(u_col1.T)
             plt.ylabel('original dim')
             plt.xlabel('time')
@@ -249,6 +249,88 @@ def plot_gini(gn, gn_std):
         plt.xlim(tick_positions[0] - 0.5, tick_positions[-1] + 0.5 + 0.5)
     plt.tight_layout()
     plt.show()
+
+    
+def log_max_abs_eig(matrix_dic):
+    """
+    Compute the natural log of the absolute largest eigenvalue for each matrix
+    
+    Returns:
+    list: Natural logs of the absolute largest eigenvalues
+    """
+    results = []
+    x_labels = list(matrix_dic.keys())
+    matrix_list = list(matrix_dic.values())
+    for idx, matrix in enumerate(matrix_list):
+        # Verify matrix is square
+        if matrix.shape[0] != matrix.shape[1]:
+            raise ValueError(f"Matrix at index {idx} is not square")
+            
+        # Compute eigenvalues
+        eigvals = np.linalg.eigvals(matrix)
+        
+        # Find absolute largest eigenvalue
+        abs_eigvals = np.abs(eigvals)
+        max_abs_eig = np.max(abs_eigvals)
+        
+        # Handle edge case where eigenvalue could be zero
+        if max_abs_eig == 0:
+            # Zero eigenvalues need special handling for log
+            results.append(-np.inf)
+        else:
+            results.append(np.log(max_abs_eig))
+    
+    return x_labels,results
+
+def plot_eig_results(x_labels,log_values):
+    """
+    Create a professional line plot of the eigenvalue logs
+    
+    Args:
+    log_values (list): Natural log values from log_max_abs_eig()
+    """
+    tick_positions = np.arange(len(x_labels))
+    marker_x_positions = tick_positions + 0.5
+    
+    plt.figure(figsize=(10, 6))
+    
+    # Create plot with custom styling
+    plt.plot(marker_x_positions,log_values, 
+             marker='o', 
+             markersize=8, 
+             linewidth=2.5, 
+             color='#1f77b4',
+             markerfacecolor='white',
+             markeredgewidth=2)
+    
+    # Customize plot aesthetics
+    plt.ylabel('ln(|λ|_max)', fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.xticks(ticks=tick_positions, labels=x_labels, rotation=45, ha='right')
+    plt.yticks(fontsize=10)
+    
+    # Annotate values on the plot
+    for i, val in enumerate(log_values):
+        plt.annotate(f'{val:.2f}', 
+                     (i, val), 
+                     textcoords="offset points", 
+                     xytext=(0,10), 
+                     ha='center',
+                     fontsize=9)
+    
+    # Adjust layout and show plot
+    plt.tight_layout()
+    plt.show()
+
+def macro_analysis(us, mats, start, end, interval):
+    A_ma_ls = {}
+    for i in range(start, end, interval):
+        A_macro = us[i][0].T @ mats[i][0] @  us[i][0] 
+        A_macro = np.real(A_macro)
+        A_ma_ls[str(i)] = A_macro
+
+    x_labels,results = log_max_abs_eig(A_ma_ls)
+    plot_eig_results(x_labels,results)
     
 def macro_dim(us, A_mats, Sigs, start, end, interval):
     for i in range(start, end, interval):
