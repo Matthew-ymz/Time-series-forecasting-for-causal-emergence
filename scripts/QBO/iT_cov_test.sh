@@ -15,7 +15,7 @@ python -u run.py \
   --is_training 0 \
   --root_path ./dataset/QBO/ \
   --data_path daily_1979_2023_16436_37.csv \
-  --model_id cov_qbo_daily_seqlen40 \
+  --model_id cov_daily_best_review\
   --model $model_name \
   --data QBO \
   --data_partition 0.79 0.1 0.11 \
@@ -45,8 +45,8 @@ python -u run.py \
   --loss_lam 0.001 \
   --jacobian \
   --jac_mean \
-  --jac_init 12554 \
-  --jac_end 15492 \
+  --jac_init 9000 \
+  --jac_end 12554 \
   --jac_interval 96 \
   --jac_mean_interval $jac_mean_interval \
   --freq_loss \

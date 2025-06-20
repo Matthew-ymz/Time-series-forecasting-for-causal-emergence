@@ -5,7 +5,9 @@
   # --jac_end 15492 \
   # --jac_interval 96 \
   # --jac_mean_interval 15 \
-  
+
+jac_mean_interval=10
+# task_name="test_jacmean_${1}"
 model_name=iTransformer_cov
 
 python -u run.py \
@@ -13,14 +15,14 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/QBO/ \
   --data_path daily_1979_2023_16436_37.csv \
-  --model_id iT_cov_qbo_daily \
+  --model_id new_frame \
   --model $model_name \
   --data QBO \
-  --data_partition 0.8 0.1 0.1 \
-  --fold_loc 'vali_test_first' \
+  --data_partition 0.79 0.1 0.11 \
+  --fold_loc 'vali_first' \
   --target stage \
-  --seq_len 30 \
-  --pred_len 30 \
+  --seq_len 25 \
+  --pred_len 25 \
   --downsample 1 \
   --e_layers 4 \
   --d_layers 1 \
@@ -35,16 +37,16 @@ python -u run.py \
   --prints 300 \
   --learning_rate 0.001 \
   --patience 7 \
-  --itr 1 \
+  --itr 5 \
   --train_epochs 30 \
   --inverse \
   --lradj type1 \
   --cov_bool \
   --loss_lam 0.001 \
-  --jacobian \
-  --jac_mean \
-  --jac_init 12419 \
-  --jac_end 15492 \
-  --jac_interval 96 \
-  --jac_mean_interval 15 \
+  # --jacobian \
+  # --jac_mean \
+  # --jac_init 12554 \
+  # --jac_end 15492 \
+  # --jac_interval 100 \
+  # --jac_mean_interval $jac_mean_interval \
 

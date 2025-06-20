@@ -37,7 +37,8 @@ python -u run.py \
   --loss_lam 0.1 \
   --jacobian \
   --jac_mean \
-  --jac_init 7990 \
-  --jac_end 8090 \
-  --jac_interval 4 \
-  --jac_mean_interval 1 \
+  --jac_init 7500 \
+  --jac_end 8600 \
+  --jac_interval 100 \
+  --jac_mean_interval 10 \
+  # --causal_net \

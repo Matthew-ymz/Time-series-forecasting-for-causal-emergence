@@ -6,6 +6,7 @@ from cycler import cycler
 import pandas as pd
 import math
 import seaborn as sns
+from scipy.optimize import curve_fit
 
 def get_positive_contributions(jac_arr):    
     ave_sig = []
@@ -187,7 +188,6 @@ def extract_rows_with_interval(matrix, start_row_index, interval=37):
     # 生成要提取的行的索引列表
     # range(start, stop, step)
     row_indices_to_extract = list(range(start_row_index, num_rows, interval))
-    print(row_indices_to_extract)
 
     if not row_indices_to_extract:
         print("根据给定的起始行和间隔，没有行可以被提取。")
@@ -232,24 +232,140 @@ def extract_cols_with_interval(matrix, start_col_index, interval=37):
 
     return extracted_matrix
 
-def plot_gini(gn, gn_std):
-    x_labels0 = list(gn.keys())
-    x_labels = [i for i in x_labels0]
-    y_val = np.array(list(gn.values()))
-    y_val_std = np.array(list(gn_std.values()))
+def micro_analysis_jac(test_id_first, period, dims, seed, causes='all', effects='all', eps=0):
+    test_id = test_id_first + str(seed)
+    if causes == 'all':
+        causes = range(dims)
+    if effects == 'all':
+        effects = range(dims)
+    for cause in causes:
+        for effect in effects:#[10,20,30,50,70]:
+            str_i = f'{period:04d}'
+            matrix = np.load(f'../results/jacobian/{test_id}/jac_{str_i}.npy')
+            mat = np.abs(np.real(matrix))
+            #mat = np.log(mat)
+            mat_extract = extract_rows_with_interval(mat, start_row_index=cause, interval=dims)
+            mat_extract = extract_cols_with_interval(mat_extract, start_col_index=effect, interval=dims)
+
+            if mat.size > 0 and np.nanmin(mat) != np.nanmax(mat):
+                min_val = np.nanmin(mat) # 使用 nanmin 来忽略NaN值
+                max_val = np.nanmax(mat) # 使用 nanmax 来忽略NaN值
+            elif mat.size > 0: # 如果所有值相同
+                min_val = np.nanmin(mat) - 0.5 # 创建一个小的范围
+                max_val = np.nanmax(mat) + 0.5
+                if min_val == max_val : # 如果减去0.5后仍然相同（比如只有一个元素）
+                        min_val = min_val - 1 # 确保有一个范围
+                        max_val = max_val +1
+            else: # 如果mat为空
+                print(f"Skipping empty or invalid mat at index {i}")
+                continue
+            if mat_extract.max() > eps:
+                sns.heatmap(mat_extract,vmin=min_val, vmax=max_val, cmap="viridis") # cmap可以自行选择
+                plt.title("{0} {1} to {2}".format(period, cause, effect))
+                plt.show()
+                
+def micro_analysis_ig(test_id_first, period, dims, seed, causes='all', effects='all', eps=0):
+    test_id = test_id_first + str(seed)
+    if causes == 'all':
+        causes = range(dims)
+    if effects == 'all':
+        effects = range(dims)
+    for cause in causes:
+        for effect in effects:
+            str_i = f'{period:04d}'
+            matrix = np.load(f'../results/causal_net/{test_id}/ca_{str_i}.npy')
+            mat_extract = matrix[:, cause, :, effect]
+
+            if matrix.size > 0 and np.nanmin(matrix) != np.nanmax(matrix):
+                min_val = np.nanmin(matrix) 
+                max_val = np.nanmax(matrix) 
+            elif matrix.size > 0: 
+                min_val = np.nanmin(matrix) - 0.5 
+                max_val = np.nanmax(matrix) + 0.5
+            else: 
+                print(f"Skipping empty or invalid mat at index {i}")
+                continue
+            if mat_extract.max() > eps:
+                sns.heatmap(mat_extract,vmin=min_val, vmax=max_val, cmap="viridis") # cmap可以自行选择
+                plt.title("{0} {1} to {2}".format(period, cause, effect))
+                plt.show()
+                                                                 
+def dgbd_model(r, A, a, b, P):
+    return A * (P + 1 - r) ** b / r ** a
+
+# 拟合，不包括P参数，P为常数
+def dgbd_model_noP(r, A, a, b):
+    P = r.max()
+    return dgbd_model(r, A, a, b, P)
+
+def dgbd_fit(x, y, p0=[1, 1, 1], title='dgbd'):
+    popt, pcov = curve_fit(dgbd_model_noP, x, y, p0=p0)
+
+    print("拟合参数A, a, b:", popt)
+
+    # 拟合曲线
+    t_fit = dgbd_model_noP(x, *popt)
+
+    plt.scatter(x, y, label='Data')
+    plt.plot(x, t_fit, color='red', label='DGBD Fit')
+    plt.xlabel('index')
+    plt.ylabel('non-negative log value')
+    plt.title(title)
+    plt.legend()
+    plt.show()
+    
+    return popt
+
+def dgbd_ce(singular,start, end, interval, seed=1):
+    A_dic = {}
+    A_dic_std={}
+    a_dic={}
+    a_dic_std={}
+    b_dic={}
+    b_dic_std={}
+    for i in range(start, end, interval):
+        A_ls = []
+        a_ls = []
+        b_ls = []
+        for k in range(seed):
+            s_log = np.log(singular[i][k])
+            s_min = np.min(s_log)
+            if s_min < 0:
+                s_log = s_log + np.abs(s_min)
+            x = np.arange(1, len(s_log)+1) 
+            param = dgbd_fit(x, s_log, p0=[0.5, 0.5, 0.5], title=str(i))
+            A_ls.append(param[0])
+            a_ls.append(param[1])
+            b_ls.append(param[2])
+        
+        A_dic[i] = np.mean(A_ls)
+        A_dic_std[i] = np.std(A_ls)
+        a_dic[i] = np.mean(a_ls)
+        a_dic_std[i] = np.std(a_ls)
+        b_dic[i] = np.mean(b_ls)
+        b_dic_std[i] = np.std(b_ls)
+        
+    plot_ce_index(A_dic, A_dic_std, y_lab = "A")
+    plot_ce_index(a_dic, A_dic_std, y_lab = "a")
+    plot_ce_index(b_dic, A_dic_std, y_lab = "b")
+    
+def plot_ce_index(val_dic, val_std, y_lab = "gini"):
+    x_labels0 = list(val_dic.keys())
+    x_labels = [str(i) for i in x_labels0]
+    y_val = np.array(list(val_dic.values()))
+    y_val_std = np.array(list(val_std.values()))
     tick_positions = np.arange(len(x_labels))
     marker_x_positions = tick_positions + 0.5
 
     plt.figure(figsize=(8, 4))
     plt.plot(marker_x_positions, y_val, marker='o', linestyle='-')
     plt.fill_between(marker_x_positions, y_val+y_val_std, y_val-y_val_std, alpha=0.15)
-    plt.ylabel("gini")
+    plt.ylabel(y_lab)
     plt.xticks(ticks=tick_positions, labels=x_labels, rotation=45, ha='right')
     if len(marker_x_positions) > 0:
         plt.xlim(tick_positions[0] - 0.5, tick_positions[-1] + 0.5 + 0.5)
     plt.tight_layout()
     plt.show()
-
     
 def log_max_abs_eig(matrix_dic):
     """
@@ -332,43 +448,43 @@ def macro_analysis(us, mats, start, end, interval):
     x_labels,results = log_max_abs_eig(A_ma_ls)
     plot_eig_results(x_labels,results)
     
-def macro_dim(us, A_mats, Sigs, start, end, interval):
-    for i in range(start, end, interval):
-        A_macro = us[i][0].T @ A_mats[i][0] @  us[i][0] 
-        Sig_macro = us[i][0].T @ Sigs[i][0] @  us[i][0] 
-        A_macro = np.real(A_macro)
-        Sig_macro = np.real(Sig_macro)
-        plt.figure(figsize=(7, 5)) # Adjust figure size as needed
-        # Using 'crest' colormap (perceptually uniform, sequential)
-        sns.heatmap(A_macro,
-                    annot=True,             # Show values in cells
-                    fmt=".2f",              # Format annotations to 2 decimal places
-                    cmap="crest",           # Uncommon colormap
-                    linewidths=.5,          # Add lines between cells
-                    linecolor='gray',       # Color of the lines
-                    cbar=True)              # Show color bar
-        plt.title(f"A_macro "+str(i), fontsize=16)
-        plt.xlabel("Dimension Index", fontsize=12)
-        plt.ylabel("Dimension Index", fontsize=12)
-        plt.xticks(rotation=45, ha='right', fontsize=10)
-        plt.yticks(rotation=0, fontsize=10)
-        plt.tight_layout() # Adjust layout to prevent labels from overlapping
-        plt.show()
+# def macro_dim(us, A_mats, Sigs, start, end, interval):
+#     for i in range(start, end, interval):
+#         A_macro = us[i][0].T @ A_mats[i][0] @  us[i][0] 
+#         Sig_macro = us[i][0].T @ Sigs[i][0] @  us[i][0] 
+#         A_macro = np.real(A_macro)
+#         Sig_macro = np.real(Sig_macro)
+#         plt.figure(figsize=(7, 5)) # Adjust figure size as needed
+#         # Using 'crest' colormap (perceptually uniform, sequential)
+#         sns.heatmap(A_macro,
+#                     annot=True,             # Show values in cells
+#                     fmt=".2f",              # Format annotations to 2 decimal places
+#                     cmap="crest",           # Uncommon colormap
+#                     linewidths=.5,          # Add lines between cells
+#                     linecolor='gray',       # Color of the lines
+#                     cbar=True)              # Show color bar
+#         plt.title(f"A_macro "+str(i), fontsize=16)
+#         plt.xlabel("Dimension Index", fontsize=12)
+#         plt.ylabel("Dimension Index", fontsize=12)
+#         plt.xticks(rotation=45, ha='right', fontsize=10)
+#         plt.yticks(rotation=0, fontsize=10)
+#         plt.tight_layout() # Adjust layout to prevent labels from overlapping
+#         plt.show()
 
-        # --- Plotting Sig_macro ---
-        plt.figure(figsize=(7, 5))
-        sns.heatmap(Sig_macro,
-                    annot=True,
-                    fmt=".2f", # Or ".2e" if scales vary widely
-                    cmap="coolwarm",       # Another diverging colormap option
-                    center=0,
-                    linewidths=.5,
-                    linecolor='gray',
-                    cbar=True) # Updated cbar label
-        plt.title(f"Sig_macro "+str(i), fontsize=16) # Updated title
-        plt.xlabel("Dimension Index", fontsize=12)
-        plt.ylabel("Dimension Index", fontsize=12)
-        plt.xticks(rotation=45, ha='right', fontsize=10)
-        plt.yticks(rotation=0, fontsize=10)
-        plt.tight_layout()
-        plt.show()
+#         # --- Plotting Sig_macro ---
+#         plt.figure(figsize=(7, 5))
+#         sns.heatmap(Sig_macro,
+#                     annot=True,
+#                     fmt=".2f", # Or ".2e" if scales vary widely
+#                     cmap="coolwarm",       # Another diverging colormap option
+#                     center=0,
+#                     linewidths=.5,
+#                     linecolor='gray',
+#                     cbar=True) # Updated cbar label
+#         plt.title(f"Sig_macro "+str(i), fontsize=16) # Updated title
+#         plt.xlabel("Dimension Index", fontsize=12)
+#         plt.ylabel("Dimension Index", fontsize=12)
+#         plt.xticks(rotation=45, ha='right', fontsize=10)
+#         plt.yticks(rotation=0, fontsize=10)
+#         plt.tight_layout()
+#         plt.show()
