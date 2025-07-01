@@ -9,11 +9,13 @@ from torch import optim
 from torch.autograd.functional import jacobian
 from torch.func import jacfwd, jacrev
 from scipy.linalg import fractional_matrix_power
+import torch.distributions as dist 
 import os
 import time
 from datetime import datetime
 import warnings
 import numpy as np
+from captum.attr import IntegratedGradients
 
 warnings.filterwarnings('ignore')
 
@@ -43,16 +45,26 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 return (torch.fft.rfft(outputs, dim=1) - torch.fft.rfft(batch_y, dim=1)).abs().mean()  
         else:
             criterion0 = nn.MSELoss()
-        def nll_loss(mu, L, y):
+
+        def nll_loss(mu, L, y):  
             loss1 = criterion0(mu, y)
-            diff = y - mu  # 形状: (batch_size, n)
-            L_diag = torch.diagonal(L, dim1=-2, dim2=-1)  # 形状: (batch_size, n)
-            z = diff / L_diag  # 形状: (batch_size, n)
-            mahalanobis = torch.sum(z**2, dim=-1)  # 形状: (batch_size,)
-            log_det = 2 * torch.sum(torch.log(L_diag), dim=-1)  # 形状: (batch_size,)
-            n = L.shape[-1]  # 维度
-            log_prob = -0.5 * (n * torch.log(2 * torch.tensor(torch.pi)) + log_det + mahalanobis)  # 形状: (batch_size,)
-            return (1-lam) * loss1 - lam * log_prob.mean()
+            #L_diag = torch.exp(torch.diagonal(L, dim1=1, dim2=2))
+            #print(L.size())
+            # 计算多元高斯分布的负对数似然  
+            mvn = dist.MultivariateNormal(loc=mu, scale_tril=L)  
+            return (1-lam) * loss1 - lam * mvn.log_prob(y).mean() 
+        
+        # def nll_loss(mu, L, y):
+        #     loss1 = criterion0(mu, y)
+        #     diff = y - mu  # 形状: (batch_size, n)
+        #     L_diag = torch.diagonal(L, dim1=-2, dim2=-1)  # 形状: (batch_size, n)
+        #     z = diff / torch.exp(L_diag)  # 形状: (batch_size, n)
+        #     mahalanobis = torch.sum(z**2, dim=-1)  # 形状: (batch_size,)
+        #     log_det = 2 * torch.sum(L_diag, dim=-1)  # 形状: (batch_size,)
+        #     n = L.shape[-1]  # 维度
+        #     log_prob = -0.5 * (n * torch.log(2 * torch.tensor(torch.pi)) + log_det + mahalanobis)  # 形状: (batch_size,)
+        #     #print("loss1:{0}  log_prob:{1}".format(loss1.item(),log_prob.mean().item()))
+        #     return (1-lam) * loss1 - lam * log_prob.mean()
 
         if cov_b:
             criterion = nll_loss
@@ -227,16 +239,30 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         jac = jacobian(fun, batch_x)
         jac = jac.detach().cpu().numpy()[0,:,:,0,:,:].astype(np.float16)
         return jac.reshape(jac.shape[0]*jac.shape[1], -1).astype(float)
+    
+    def cal_causal_net(self, dec_inp, batch_x):
+        step_number = batch_x.size(1)
+        space_number = batch_x.size(2)
+        if self.args.output_attention or self.args.cov_bool:
+            fun = lambda x: self.model(x, dec_inp)[0]#.reshape(-1,step_number*space_number)
+        else:
+            fun = lambda x: self.model(x, dec_inp)#.reshape(-1,step_number*space_number)
+        ig = IntegratedGradients(fun)
+        temp_attribution = np.zeros((step_number, space_number,step_number, space_number))
+        for tar_1 in range(step_number):
+            for tar_2 in range(space_number):
+                attributions,_ = ig.attribute(batch_x,target=(tar_1,tar_2), method='gausslegendre', return_convergence_delta=True) 
+                attributions = (attributions.abs().cpu().detach().numpy()).mean(0)
+                temp_attribution[:,:,tar_1,tar_2] = attributions
+        return temp_attribution
 
     def cal_cov(self,batch_x):
-        if self.args.cov_bool:
-            if "Transformer" in self.args.model:
-                mu, attn, L = self.model.forecast(batch_x)
-            else:
-                mu, L = self.model.forecast(batch_x)
-            L = L.cpu().detach().data.numpy()
+        if "Transformer" in self.args.model:
+            mu, attn, L = self.model.forecast(batch_x)
         else:
-            L = np.eye(batch_x.size(1)*batch_x.size(2))
+            mu, L = self.model.forecast(batch_x)
+        L = torch.matmul(L, L.transpose(1, 2)) 
+        L = L.cpu().detach().data.numpy()
         return L[0]
 
     def test(self, setting, test=0):
@@ -260,15 +286,20 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         L_path = './results/cov_L/' + setting + '/'
         if self.args.cov_bool and (not os.path.exists(L_path)):
             os.makedirs(L_path)
+        ca_path = './results/causal_net/' + setting + '/'
+        if self.args.causal_net and (not os.path.exists(ca_path)):
+            os.makedirs(ca_path)
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
 
         self.model.eval()
         idx, batch_x, batch_y = next(iter(test_loader))
-        jacs = np.eye(batch_y.size(1)*batch_y.size(2))
-        Ls = np.eye(batch_y.size(1)*batch_y.size(2))
+        size = batch_y.size(1)*batch_y.size(2)
+        jacs = np.zeros([size,size])
+        Ls = np.zeros([size,size])
         nums = 0
+        batch_list = []
         for i, (idx, batch_x, batch_y) in enumerate(test_loader):
             self.model.zero_grad()
             batch_x = batch_x.float().to(self.device)
@@ -292,6 +323,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             else:
                 if self.args.output_attention and self.args.cov_bool:
                     outputs, attn, L = self.model(batch_x, dec_inp)
+                    Sigma = torch.matmul(L, L.transpose(1, 2)) 
                 elif self.args.output_attention:
                     outputs, attn = self.model(batch_x, dec_inp)
                 elif self.args.cov_bool:
@@ -318,40 +350,47 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             preds.append(pred)
             trues.append(true)
             if (i > self.args.jac_init) and (i <= self.args.jac_end):
+                batch_list.append(batch_x)
                 if self.args.jac_mean and (i-self.args.jac_init) % self.args.jac_mean_interval == 0:
                     jac = self.cal_jac(dec_inp, batch_x)
                     L = self.cal_cov(batch_x)
-                    jacs = jacs @ jac
-                    Ls = Ls @ L
+                    jacs = jacs + jac
+                    Ls = Ls + L
                     nums = nums + 1
                 if (i-self.args.jac_init) % self.args.jac_interval == 0:
+                    store_time = i - self.args.jac_interval + batch_x.size(1)
                     t = time.time()
                     print(f'elapse: {t-t0:.2}s')
                     t0 = t
                     if self.args.jacobian:
                         if self.args.jac_mean:
-                            jacs = fractional_matrix_power(jacs, 1/nums)
-                            np.save(jacobian_path + f'jac_{i:04}.npy', jacs)
-                            jacs = np.eye(batch_y.shape[1]*batch_y.shape[2])
+                            jacs = jacs / nums #fractional_matrix_power(jacs, 1/nums)
+                            np.save(jacobian_path + f'jac_{store_time:04}.npy', jacs)
+                            jacs = np.zeros([size,size])
                         else:
                             jac = self.cal_jac(dec_inp, batch_x)
-                            np.save(jacobian_path + f'jac_{i:04}.npy', jac)
-                        print(f'saving jacobian: jac_{i:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
+                            np.save(jacobian_path + f'jac_{store_time:04}.npy', jac)
+                        print(f'saving jacobian: jac_{store_time:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
                     if self.args.cov_bool:
                         if self.args.jac_mean:
                             # import pdb; pdb.set_trace()
-                            Ls = fractional_matrix_power(Ls, 1/nums)
-                            np.save(L_path + f'L_{i:04}.npy', Ls)
-                            Ls = np.eye(batch_y.shape[1]*batch_y.shape[2])
+                            Ls = Ls / nums #fractional_matrix_power(Ls, 1/nums)
+                            np.save(L_path + f'L_{store_time:04}.npy', Ls)
+                            Ls = np.zeros([size,size])
                             nums = 0
                         else:
                             L = self.cal_cov(batch_x)
-                            np.save(L_path + f'L_{i:04}.npy', L)
+                            np.save(L_path + f'L_{store_time:04}.npy', L)
+                    if self.args.causal_net:
+                        batch_x_cat = torch.cat(batch_list, dim=0)
+                        ca_net = self.cal_causal_net(dec_inp, batch_x_cat)
+                        np.save(ca_path + f'ca_{store_time:04}.npy', ca_net)
+                        batch_list = []
 
                     if self.args.output_attention and attn is not None:
                         attn = attn.astype(np.float16)
-                        np.save(attention_path + f'attn_{i:04}.npy', attn)
-                        print(f'saving attention: attn_{i:04}.npy(size: {attn.dtype.itemsize * attn.size // 1024}KB); ')
+                        np.save(attention_path + f'attn_{store_time:04}.npy', attn)
+                        print(f'saving attention: attn_{store_time:04}.npy(size: {attn.dtype.itemsize * attn.size // 1024}KB); ')
                     input = batch_x.detach().cpu().numpy()
                     if test_data.scale and self.args.inverse:
                         shape = input.shape
@@ -361,9 +400,9 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     si = 0
                     gt = np.concatenate((input[0, :, si], true[0, :, si]), axis=0)
                     pd = np.concatenate((input[0, :, si], pred[0, :, si]), axis=0)
-                    visual(gt, pd, os.path.join(folder_path, f'{i:04}.pdf'))
+                    visual(gt, pd, os.path.join(folder_path, f'{store_time:04}.pdf'))
                     if self.args.output_attention and attn is not None:
-                        print(f'saving fig: {i:04}.pdf')
+                        print(f'saving fig: {store_time:04}.pdf')
 
         preds = np.array(preds)
         trues = np.array(trues)

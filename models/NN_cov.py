@@ -70,7 +70,7 @@ class Model(nn.Module):
             indices = torch.tril_indices(row=self.output_size, col=self.output_size, offset=0)  
             L[:, indices[0], indices[1]] = L_elements  
             L.diagonal(dim1=1, dim2=2).exp_()
-            L = torch.matmul(L, L.transpose(1, 2))  
+            #L = torch.matmul(L, L.transpose(1, 2))  
         else:
             L = 0
         # if self.cov_bool:
