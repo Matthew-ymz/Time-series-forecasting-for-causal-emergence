@@ -12,10 +12,10 @@ model_name=iTransformer_cov
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 1 \
+  --is_training 0 \
   --root_path ./dataset/QBO/ \
   --data_path daily_1979_2023_16436_37.csv \
-  --model_id new_frame \
+  --model_id new_frame_bt16_epoch8 \
   --model $model_name \
   --data QBO \
   --data_partition 0.79 0.1 0.11 \
@@ -33,20 +33,20 @@ python -u run.py \
   --des 'Exp' \
   --d_model 512 \
   --d_ff 512 \
-  --batch_size 8 \
+  --batch_size 16 \
   --prints 300 \
   --learning_rate 0.001 \
-  --patience 7 \
-  --itr 5 \
-  --train_epochs 30 \
+  --patience 8 \
+  --itr 1 \
+  --train_epochs 8 \
   --inverse \
   --lradj type1 \
   --cov_bool \
   --loss_lam 0.001 \
-  # --jacobian \
-  # --jac_mean \
-  # --jac_init 12554 \
-  # --jac_end 15492 \
-  # --jac_interval 100 \
-  # --jac_mean_interval $jac_mean_interval \
+  --jacobian \
+  --jac_mean \
+  --jac_init 0 \
+  --jac_end 1000 \
+  --jac_interval 100 \
+  --jac_mean_interval 10 \
 

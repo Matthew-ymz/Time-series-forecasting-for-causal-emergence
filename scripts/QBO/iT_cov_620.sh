@@ -15,7 +15,7 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/QBO/ \
   --data_path daily_1979_2023_16436_37.csv \
-  --model_id new_frame \
+  --model_id new_frame_lr0.01 \
   --model $model_name \
   --data QBO \
   --data_partition 0.79 0.1 0.11 \
@@ -35,7 +35,7 @@ python -u run.py \
   --d_ff 512 \
   --batch_size 8 \
   --prints 300 \
-  --learning_rate 0.001 \
+  --learning_rate 0.01 \
   --patience 7 \
   --itr 5 \
   --train_epochs 30 \
@@ -43,10 +43,10 @@ python -u run.py \
   --lradj type1 \
   --cov_bool \
   --loss_lam 0.001 \
-  --jacobian \
-  --jac_mean \
-  --jac_init 12554 \
-  --jac_end 15492 \
-  --jac_interval 100 \
-  --jac_mean_interval $jac_mean_interval \
-  --freq_loss
+  # --jacobian \
+  # --jac_mean \
+  # --jac_init 12554 \
+  # --jac_end 15492 \
+  # --jac_interval 100 \
+  # --jac_mean_interval $jac_mean_interval \
+

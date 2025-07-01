@@ -110,20 +110,46 @@ def plot_singular_cum(test_id_first, eps = 'all', seed = 0, window=5, window2='a
  
     return gn_dic, gn_dic_std, singular, us, vts, mats, Sigs
 
-def analysis_u(us, seq_len, dims, start, end, interval, target):
-    for j in target:
+def analysis_u(us, seq_len, dims, start, end, interval, target=[0], space_only=False):
+    if space_only:
         for i in range(start, end, interval):
             u = np.array(us[i])
-            u_col1 = u[0, :, j]
-            u_col1 = u_col1.reshape(seq_len,dims)
+            u_col1 = u[0, :, :]
+            u_col1 = u_col1.reshape(seq_len,dims,-1)
             u_col1 = np.abs(u_col1)
-            n_ticks = u_col1.shape[1]
+            u_col1 = np.mean(u_col1, axis=0)
             plt.figure(dpi=100)
             sns.heatmap(u_col1.T)
-            plt.ylabel('original dim')
-            plt.xlabel('time')
+            plt.ylabel('macro dim')
+            plt.xlabel('micro dim')
+            plt.title(str(i))
+    else:
+        for j in target:
+            for i in range(start, end, interval):
+                u = np.array(us[i])
+                u_col1 = u[0, :, j]
+                u_col1 = u_col1.reshape(seq_len,dims)
+                u_col1 = np.abs(u_col1)
+                plt.figure(dpi=100)
+                sns.heatmap(u_col1.T)
+                plt.ylabel('original dim')
+                plt.xlabel('time')
+                plt.title(str(i)+"_index={0}".format(j))
+    
+def analysis_u_mean(us, seq_len, dims, start, end, interval, targets):
+    for i in range(start, end, interval):
+        u = np.array(us[i])
+        u_col1 = u[0, :, :targets]
+        u_col1 = np.mean(u_col1, axis=-1)
+        u_col1 = u_col1.reshape(seq_len,dims)
+        u_col1 = np.abs(u_col1)
+        n_ticks = u_col1.shape[1]
+        plt.figure(dpi=100)
+        sns.heatmap(u_col1.T)
+        plt.ylabel('original dim')
+        plt.xlabel('time')
 #             plt.xticks(ticks=np.arange(n_ticks) + 0.5, labels=np.arange(n_ticks), rotation=45, fontsize=6)
-            plt.title(str(i)+"_index={0}".format(j))
+        plt.title(str(i)+"_n={0}".format(targets))
             
 def create_block_diagonal_matrix(matrix1, matrix2):
     if matrix1.ndim != 2 or matrix2.ndim != 2:
