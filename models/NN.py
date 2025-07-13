@@ -26,8 +26,7 @@ class Model(nn.Module):
         self.dropout = nn.Dropout(p=0.1)
         self.func = lambda x: self.forecast(x)
         # Decoder
-        if self.task_name == 'nn_forecast':
-            self.projection = nn.Linear(configs.d_model, configs.pred_len * configs.c_out, bias=True)
+        self.projection = nn.Linear(configs.d_model, configs.pred_len * configs.c_out, bias=True)
 
     def cal_EI_1(self, x_enc, num_samples=1000, L=1):
         jac_in = L * (2 * torch.rand(num_samples, self.seq_len, self.c_in, dtype=x_enc.dtype, device=x_enc.device) - 1)
@@ -69,10 +68,9 @@ class Model(nn.Module):
         # dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
         return dec_out  #.reshape(B, self.pred_len, N)
 
-    def forward(self, x_enc, EI_bool=False):
-        if self.task_name == 'nn_forecast':
-            dec_out = self.forecast(x_enc)
-            result = dec_out
+    def forward(self, x_enc, dec_inp=0, EI_bool=False):
+        dec_out = self.forecast(x_enc)
+        result = dec_out
 
         if EI_bool:
             count, avg_log_jacobian = self.cal_EI_1(x_enc)

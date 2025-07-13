@@ -1,10 +1,10 @@
 #export CUDA_VISIBLE_DEVICES=0
 
-model_name=NN_cov
+model_name=iTransformer_cov
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 0 \
+  --is_training 1 \
   --root_path ./dataset/SIR/ \
   --model_id sir_review \
   --model $model_name \

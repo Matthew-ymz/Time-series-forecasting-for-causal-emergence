@@ -74,28 +74,19 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
     def model_step(self, idx, batch_x, batch_y, criterion):
         dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:,:]).float().to(self.device)
+
+        outputs, ei_items = self.model(batch_x, dec_inp)
+        if self.args.features[0] == -1:
+            outputs = outputs[:, -self.args.pred_len:, :]
+            batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
+        else:
+            outputs = outputs[:, -self.args.pred_len:, self.args.features]
+            batch_y = batch_y[:, -self.args.pred_len:, self.args.features].to(self.device)
+        outputs = outputs.reshape(-1, outputs.size(1)*outputs.size(2))
+        batch_y = batch_y.reshape(-1, batch_y.size(1)*batch_y.size(2))
         if self.args.cov_bool:
-            outputs, ei_items = self.model(batch_x, dec_inp)
-            if self.args.features[0] == -1:
-                outputs = outputs[:, -self.args.pred_len:, :]
-                batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
-            else:
-                outputs = outputs[:, -self.args.pred_len:, self.args.features]
-                batch_y = batch_y[:, -self.args.pred_len:, self.args.features].to(self.device)
-            outputs = outputs.reshape(-1, outputs.size(1)*outputs.size(2))
-            batch_y = batch_y.reshape(-1, batch_y.size(1)*batch_y.size(2))
             loss = criterion(outputs, ei_items["L"], batch_y)
         else:
-            if self.args.output_attention:
-                outputs, attn = self.model(batch_x, dec_inp)
-            else:
-                outputs = self.model(batch_x, dec_inp)
-            if self.args.features[0] == -1:
-                outputs = outputs[:, -self.args.pred_len:, :]
-                batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
-            else:
-                outputs = outputs[:, -self.args.pred_len:, self.args.features]
-                batch_y = batch_y[:, -self.args.pred_len:, self.args.features].to(self.device)
             loss = criterion(outputs, batch_y)
         return loss
     
@@ -226,16 +217,10 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             return torch.stack([self.tensor_backward(subtarget, source) for subtarget in target])
 
     def cal_jac(self,dec_inp, batch_x):
-        if self.args.output_attention or self.args.cov_bool:
-            if self.args.features[0] == -1:
-                fun = lambda x: self.model(x, dec_inp)[0]
-            else:
-                fun = lambda x: self.model(x, dec_inp)[0][:, :, self.args.features]
+        if self.args.features[0] == -1:
+            fun = lambda x: self.model(x, dec_inp)[0]
         else:
-            if self.args.features[0] == -1:
-                fun = lambda x: self.model(x, dec_inp)
-            else:
-                fun = lambda x: self.model(x, dec_inp)[:, :, self.args.features]
+            fun = lambda x: self.model(x, dec_inp)[0][:, :, self.args.features]
         jac = jacobian(fun, batch_x)
         jac = jac.detach().cpu().numpy()[0,:,:,0,:,:].astype(np.float16)
         return jac.reshape(jac.shape[0]*jac.shape[1], -1).astype(float)
@@ -256,14 +241,28 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 temp_attribution[:,:,tar_1,tar_2] = attributions
         return temp_attribution
 
-    def cal_cov(self,batch_x):
-        if "Transformer" in self.args.model:
-            mu, attn, L = self.model.forecast(batch_x)
+    def MSED(self, pred, true):
+        pred = pred.reshape(pred.shape[0],-1)
+        true = true.reshape(pred.shape[0],-1)
+        mse_per_dimension = np.mean((true - pred)**2, axis=0)
+        return np.diag(mse_per_dimension)
+    
+    def cal_cov(self,batch_x,batch_y):
+        if self.args.cov_bool:
+            if "Transformer" in self.args.model:
+                mu, attn, L = self.model.forecast(batch_x)
+            else:
+                mu, L = self.model.forecast(batch_x)
+            L = torch.matmul(L, L.transpose(1, 2)) 
+            L = L.cpu().detach().data.numpy()[0]
         else:
-            mu, L = self.model.forecast(batch_x)
-        L = torch.matmul(L, L.transpose(1, 2)) 
-        L = L.cpu().detach().data.numpy()
-        return L[0]
+            if "Transformer" in self.args.model:
+                mu, attn = self.model.forecast(batch_x)
+            else:
+                mu = self.model.forecast(batch_x)
+            mu = mu.cpu().detach().data.numpy()
+            L = self.MSED(mu, batch_y)
+        return L
 
     def test(self, setting, test=0):
         t0 = time.time()
@@ -281,10 +280,10 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         if not os.path.exists(attention_path):
             os.makedirs(attention_path)
         jacobian_path = './results/jacobian/' + setting + '/'
+        L_path = './results/cov_L/' + setting + '/'
         if self.args.jacobian and (not os.path.exists(jacobian_path)):
             os.makedirs(jacobian_path)
-        L_path = './results/cov_L/' + setting + '/'
-        if self.args.cov_bool and (not os.path.exists(L_path)):
+        if self.args.jacobian and (not os.path.exists(L_path)):
             os.makedirs(L_path)
         ca_path = './results/causal_net/' + setting + '/'
         if self.args.causal_net and (not os.path.exists(ca_path)):
@@ -298,6 +297,9 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         size = batch_y.size(1)*batch_y.size(2)
         jacs = np.zeros([size,size])
         Ls = np.zeros([size,size])
+        if self.args.data == "QBO":
+            jacs = np.eye(size)
+            Ls = np.eye(size)
         nums = 0
         batch_list = []
         for i, (idx, batch_x, batch_y) in enumerate(test_loader):
@@ -311,25 +313,18 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             # encoder - decoder
             if self.args.use_amp:
                 with torch.cuda.amp.autocast():
-                    if self.args.output_attention and self.args.cov_bool:
-                        outputs, attn, L = self.model(batch_x, dec_inp)
-                    elif self.args.output_attention:
-                        outputs, attn = self.model(batch_x, dec_inp)
+                    outputs, items = self.model(batch_x, dec_inp)
+                    if self.args.output_attention:
+                        attn = items['attn']
                     elif self.args.cov_bool:
-                        outputs, L = self.model(batch_x, dec_inp)
-                    else:
-                        outputs = self.model(batch_x, dec_inp)
+                        L = items['L']
 
             else:
-                if self.args.output_attention and self.args.cov_bool:
-                    outputs, attn, L = self.model(batch_x, dec_inp)
-                    Sigma = torch.matmul(L, L.transpose(1, 2)) 
-                elif self.args.output_attention:
-                    outputs, attn = self.model(batch_x, dec_inp)
+                outputs, items = self.model(batch_x, dec_inp)
+                if self.args.output_attention:
+                    attn = items['attn']
                 elif self.args.cov_bool:
-                    outputs, L = self.model(batch_x, dec_inp)
-                else:
-                    outputs = self.model(batch_x, dec_inp)
+                    L = items['L']
 
             outputs = outputs[:, -self.args.pred_len:, :]
             batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
@@ -349,37 +344,56 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
             preds.append(pred)
             trues.append(true)
-            if (i > self.args.jac_init) and (i <= self.args.jac_end):
+            if (i >= self.args.jac_init) and (i <= self.args.jac_end):
                 batch_list.append(batch_x)
                 if self.args.jac_mean and (i-self.args.jac_init) % self.args.jac_mean_interval == 0:
                     jac = self.cal_jac(dec_inp, batch_x)
-                    L = self.cal_cov(batch_x)
-                    jacs = jacs + jac
-                    Ls = Ls + L
+                    L = self.cal_cov(batch_x,batch_y)
+                    if self.args.data == "QBO":
+                        jacs = jacs @ jac
+                        Ls = Ls @ L
+                    else:
+                        jacs = jacs + jac
+                        Ls = Ls + L
                     nums = nums + 1
                 if (i-self.args.jac_init) % self.args.jac_interval == 0:
-                    store_time = i - self.args.jac_interval + batch_x.size(1)
+                    if self.args.data == "QBO":
+                        store_time = i
+                    else:
+                        store_time = i - self.args.jac_interval + batch_x.size(1)
                     t = time.time()
                     print(f'elapse: {t-t0:.2}s')
                     t0 = t
                     if self.args.jacobian:
                         if self.args.jac_mean:
-                            jacs = jacs / nums #fractional_matrix_power(jacs, 1/nums)
+                            if self.args.data == "QBO":
+                                jacs = fractional_matrix_power(jacs, 1/nums)
+                            else:
+                                jacs = jacs / nums
                             np.save(jacobian_path + f'jac_{store_time:04}.npy', jacs)
-                            jacs = np.zeros([size,size])
+                            if self.args.data == "QBO":
+                                jacs = np.eye(size)
+                            else:
+                                jacs = np.zeros([size,size])
                         else:
                             jac = self.cal_jac(dec_inp, batch_x)
                             np.save(jacobian_path + f'jac_{store_time:04}.npy', jac)
                         print(f'saving jacobian: jac_{store_time:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
-                    if self.args.cov_bool:
+                    if self.args.jacobian:
                         if self.args.jac_mean:
                             # import pdb; pdb.set_trace()
-                            Ls = Ls / nums #fractional_matrix_power(Ls, 1/nums)
+                            if self.args.data == "QBO":
+                                Ls = fractional_matrix_power(Ls, 1/nums)
+                            else:
+                                Ls = Ls / nums
                             np.save(L_path + f'L_{store_time:04}.npy', Ls)
-                            Ls = np.zeros([size,size])
+                            if self.args.data == "QBO":
+                                Ls = np.eye(size)
+                            else:
+                                Ls = np.zeros([size,size])
                             nums = 0
                         else:
-                            L = self.cal_cov(batch_x)
+                            L = self.cal_cov(batch_x, batch_y)
                             np.save(L_path + f'L_{store_time:04}.npy', L)
                     if self.args.causal_net:
                         batch_x_cat = torch.cat(batch_list, dim=0)

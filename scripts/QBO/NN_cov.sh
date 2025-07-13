@@ -4,29 +4,33 @@
 model_name=NN_cov
 
 python -u run.py \
-  --task_name nn_forecast \
+  --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/QBO/ \
-  --data_path data_mean_996_37.csv \
-  --model_id data_mean_996_37 \
-  --model $model_name \
+  --data_path daily_1979_2023_16436_37.csv \
+  --model_id test_one \
   --data QBO \
+  --data_partition 0.79 0.1 0.11 \
+  --fold_loc 'vali_first' \
   --target stage \
-  --features M \
-  --seq_len 12 \
-  --pred_len 12 \
+  --model $model_name \
+  --seq_len 1 \
+  --pred_len 1 \
   --downsample 1 \
   --c_in 37 \
   --c_out 37 \
   --des 'Exp' \
   --d_model 512 \
-  --batch_size 12 \
-  --learning_rate 0.001 \
-  --patience 10 \
+  --batch_size 8 \
+  --learning_rate 0.01 \
+  --patience 7 \
   --itr 1 \
-  --train_epochs 25\
-  --fold_loc 1 \
+  --train_epochs 30\
   --cov_bool \
-  --print 20 \
+  --loss_lam 0.1 \
+  --print 300 \
   --lradj type1 \
   --jacobian \
+  --jac_init 14704 \
+  --jac_end 14900 \
+  --jac_interval 1 \

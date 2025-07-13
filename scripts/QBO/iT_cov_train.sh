@@ -7,8 +7,8 @@ python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/QBO/ \
-  --data_path daily_1979_2023_16436_750hpa.csv \
-  --model_id cov_daily_750hpa \
+  --data_path daily_1979_2023_16436_37.csv \
+  --model_id iT_testcov \
   --model $model_name \
   --data QBO \
   --data_partition 0.79 0.1 0.11 \
@@ -30,16 +30,16 @@ python -u run.py \
   --prints 300 \
   --learning_rate 0.001 \
   --patience 7 \
-  --itr 1 \
+  --itr 4 \
   --train_epochs 30 \
   --inverse \
   --lradj type1 \
   --cov_bool \
-  --loss_lam 0.001 \
-  --jacobian \
-  --jac_mean \
-  --jac_init 12554 \
-  --jac_end 15492 \
-  --jac_interval 96 \
-  --jac_mean_interval 15 \
-  --freq_loss \
+  --loss_lam 0 \
+  # --jacobian \
+  # --jac_mean \
+  # --jac_init 12554 \
+  # --jac_end 15492 \
+  # --jac_interval 96 \
+  # --jac_mean_interval 15 \
+  # --freq_loss \

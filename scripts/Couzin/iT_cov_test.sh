@@ -4,7 +4,7 @@ model_name=iTransformer_cov
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 0 \
+  --is_training 1 \
   --root_path ./dataset/Couzin/ \
   --data_path swarm_to_pa_10000.csv \
   --model_id MSE_loss \
@@ -13,7 +13,7 @@ python -u run.py \
   --data_partition 0.8 0.1 0.1 \
   --fold_loc 'vali_first' \
   --target stage \
-  --seq_len 25 \
+  --seq_len 1 \
   --pred_len 25 \
   --downsample 1 \
   --e_layers 4 \

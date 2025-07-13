@@ -119,7 +119,7 @@ class Model(nn.Module):
         return output, attns[0] # taking 1st layer only
 
     def forward(self, x_enc, x_dec, mask=None):
-        if self.task_name == 'long_term_forecast' or self.task_name == 'short_term_forecast':
+        if self.task_name == 'long_term_forecast':
             dec_out, attn = self.forecast(x_enc)
             result = dec_out[:, -self.pred_len:, :]  # [B, L, D]
         if self.task_name == 'imputation':
@@ -132,7 +132,6 @@ class Model(nn.Module):
             dec_out, attn = self.classification(x_enc)
             result = dec_out  # [B, N]
         
-        if self.output_attention:
-            return result, attn
-        else:
-            return result
+        ei_items = {"attn":attn}
+
+        return result, ei_items

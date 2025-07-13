@@ -1,8 +1,8 @@
 #export CUDA_VISIBLE_DEVICES=0
 #2015-2016: 12419, 13880
   # --jac_mean \
-  # --jac_init 12419 \
-  # --jac_end 15492 \
+  # --jac_init 14504 \
+  # --jac_end 15300 \
   # --jac_interval 96 \
   # --jac_mean_interval 15 \
 
@@ -12,10 +12,10 @@ model_name=iTransformer_cov
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 1 \
+  --is_training 0 \
   --root_path ./dataset/QBO/ \
   --data_path daily_1979_2023_16436_37.csv \
-  --model_id cov_daily_best_review_logL \
+  --model_id cov_daily_best_review \
   --model $model_name \
   --data QBO \
   --data_partition 0.79 0.1 0.11 \
@@ -37,16 +37,13 @@ python -u run.py \
   --prints 300 \
   --learning_rate 0.001 \
   --patience 7 \
-  --itr 7 \
+  --itr 1 \
   --train_epochs 30 \
-  --inverse \
   --lradj type1 \
   --cov_bool \
   --loss_lam 0.001 \
   --jacobian \
-  --jac_mean \
-  --jac_init 12554 \
-  --jac_end 15492 \
-  --jac_interval 96 \
-  --jac_mean_interval $jac_mean_interval \
+  --jac_init 14804 \
+  --jac_end 15200 \
+  --jac_interval 1 \
   --freq_loss
