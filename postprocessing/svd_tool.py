@@ -110,24 +110,29 @@ def plot_singular_cum(test_id_first, eps = 'all', seed = 0, window=5, window2='a
  
     return gn_dic, gn_dic_std, singular, us, vts, mats, Sigs
 
-def analysis_u(us, seq_len, dims, start, end, interval, target=[0], space_only=False):
+def analysis_u(us, seq_len, dims, start, end, interval, target=[0], space_only=False, windows='all', seed=0):
     if space_only:
         for i in range(start, end, interval):
             u = np.array(us[i])
-            u_col1 = u[0, :, :]
+            u_col1 = u[seed, :, :]
             u_col1 = u_col1.reshape(seq_len,dims,-1)
             u_col1 = np.abs(u_col1)
             u_col1 = np.mean(u_col1, axis=0)
             plt.figure(dpi=100)
-            sns.heatmap(u_col1.T)
+            if windows=='all':
+                sns.heatmap(u_col1.T)
+            else:
+                sns.heatmap(u_col1.T[:windows,:])
             plt.ylabel('macro dim')
             plt.xlabel('micro dim')
             plt.title(str(i))
+            plt.show()
+            plt.close()
     else:
         for j in target:
             for i in range(start, end, interval):
                 u = np.array(us[i])
-                u_col1 = u[0, :, j]
+                u_col1 = u[seed, :, j]
                 u_col1 = u_col1.reshape(seq_len,dims)
                 u_col1 = np.abs(u_col1)
                 plt.figure(dpi=100)
@@ -135,6 +140,8 @@ def analysis_u(us, seq_len, dims, start, end, interval, target=[0], space_only=F
                 plt.ylabel('original dim')
                 plt.xlabel('time')
                 plt.title(str(i)+"_index={0}".format(j))
+                plt.show()
+                plt.close()
     
 def analysis_u_mean(us, seq_len, dims, start, end, interval, targets):
     for i in range(start, end, interval):

@@ -7,7 +7,7 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/QBO/ \
   --data_path daily_1979_2023_16436_37.csv \
-  --model_id test \
+  --model_id test_mape \
   --data QBO \
   --data_partition 0.79 0.1 0.11 \
   --fold_loc 'vali_first' \
@@ -19,15 +19,16 @@ python -u run.py \
   --c_in 37 \
   --c_out 37 \
   --des 'Exp' \
-  --d_model 1024 \
-  --batch_size 8 \
-  --learning_rate 0.01 \
+  --d_model 512 \
+  --batch_size 16 \
+  --learning_rate 0.001 \
   --patience 7 \
-  --itr 5 \
+  --itr 1 \
   --train_epochs 30\
   --print 300 \
-  --lradj type1 \
+  --lradj type0 \
   # --jacobian \
-  # --jac_init 14600 \
-  # --jac_end 15200 \
-  # --jac_interval 20 \
+  # --cov_mean \
+  # --jac_init 12600 \
+  # --jac_end 14600 \
+  # --jac_interval 40 \

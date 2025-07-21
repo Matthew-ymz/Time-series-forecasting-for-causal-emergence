@@ -138,7 +138,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         time_now = time.time()
 
         train_steps = len(train_loader)
-        early_stopping = EarlyStopping(patience=self.args.patience, verbose=True)
+        early_stopping = EarlyStopping(patience=self.args.patience, verbose=True, delta=self.args.es_delta)
 
         model_optim = self._select_optimizer()
         criterion = self._select_criterion(cov_b=self.args.cov_bool, lam=self.args.loss_lam)
@@ -344,17 +344,18 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
             preds.append(pred)
             trues.append(true)
-            if (i >= self.args.jac_init) and (i <= self.args.jac_end):
+            if (i > self.args.jac_init) and (i <= self.args.jac_end):
                 batch_list.append(batch_x)
+                if self.args.cov_mean:
+                    L = self.cal_cov(batch_x,batch_y)
+                    Ls = Ls + L
+                    nums = nums + 1
                 if self.args.jac_mean and (i-self.args.jac_init) % self.args.jac_mean_interval == 0:
                     jac = self.cal_jac(dec_inp, batch_x)
-                    L = self.cal_cov(batch_x,batch_y)
                     if self.args.data == "QBO":
                         jacs = jacs @ jac
-                        Ls = Ls @ L
                     else:
                         jacs = jacs + jac
-                        Ls = Ls + L
                     nums = nums + 1
                 if (i-self.args.jac_init) % self.args.jac_interval == 0:
                     if self.args.data == "QBO":
@@ -380,17 +381,11 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                             np.save(jacobian_path + f'jac_{store_time:04}.npy', jac)
                         print(f'saving jacobian: jac_{store_time:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
                     if self.args.jacobian:
-                        if self.args.jac_mean:
+                        if self.args.cov_mean:
                             # import pdb; pdb.set_trace()
-                            if self.args.data == "QBO":
-                                Ls = fractional_matrix_power(Ls, 1/nums)
-                            else:
-                                Ls = Ls / nums
+                            Ls = Ls / nums
                             np.save(L_path + f'L_{store_time:04}.npy', Ls)
-                            if self.args.data == "QBO":
-                                Ls = np.eye(size)
-                            else:
-                                Ls = np.zeros([size,size])
+                            Ls = np.zeros([size,size])
                             nums = 0
                         else:
                             L = self.cal_cov(batch_x, batch_y)

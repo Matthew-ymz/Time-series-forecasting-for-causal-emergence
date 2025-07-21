@@ -95,6 +95,7 @@ if __name__ == '__main__':
     parser.add_argument('--jac_interval', type=int, default=30, help='interval time of jacobian output')
     parser.add_argument('--jac_mean', action='store_true', help='whether to mean jacobian')
     parser.add_argument('--jac_mean_interval', type=int, default=5, help='interval time of sampling for calculating jacobian mean')
+    parser.add_argument('--cov_mean', action='store_true', help='whether to mean cov matrix')
     parser.add_argument('--EI', action='store_true', help='whether to output EI')
     parser.add_argument('--cov_bool', action='store_true', help='whether to output covariance matrix')
     parser.add_argument('--causal_net', action='store_true', help='whether to output causal network by IG')
@@ -106,6 +107,7 @@ if __name__ == '__main__':
     parser.add_argument('--train_epochs', type=int, default=10, help='train epochs')
     parser.add_argument('--batch_size', type=int, default=32, help='batch size of train input data')
     parser.add_argument('--patience', type=int, default=3, help='early stopping patience')
+    parser.add_argument('--es_delta', type=float, default=0, help='early stopping score count scope')
     parser.add_argument('--learning_rate', type=float, default=0.0001, help='optimizer learning rate')
     parser.add_argument('--des', type=str, default='test', help='exp description')
     parser.add_argument('--loss', type=str, default='MSE', help='loss function')
@@ -218,10 +220,21 @@ if __name__ == '__main__':
             exp.test(setting)
             torch.cuda.empty_cache()
     else:
-        ii = 0
-        setting = set_setting(args, ii)
+        for ii in range(args.itr):
+            seed = args.seed + ii
+            random.seed(seed)
+            torch.manual_seed(seed)
+            np.random.seed(seed)
+            # setting record of experiments
+            exp = Exp(args)  # set experiments
+            setting = set_setting(args, ii)
+            print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+            exp.test(setting)
+            torch.cuda.empty_cache()
+        # ii = 0
+        # setting = set_setting(args, ii)
 
-        exp = Exp(args)  # set experiments
-        print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-        exp.test(setting, test=1)
-        torch.cuda.empty_cache()
+        # exp = Exp(args)  # set experiments
+        # print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
+        # exp.test(setting, test=1)
+        # torch.cuda.empty_cache()
