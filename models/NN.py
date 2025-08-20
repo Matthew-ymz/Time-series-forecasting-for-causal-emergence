@@ -60,9 +60,9 @@ class Model(nn.Module):
         enc_out = self.relu(enc_out)
         enc_out = self.fc2(enc_out)
         enc_out = self.dropout(enc_out)
-        enc_out = self.relu(enc_out) + enc_0
+        enc_out = self.relu(enc_out) #+ enc_0
         dec_out = self.projection(enc_out) 
-        dec_out = dec_out.reshape(B, self.pred_len, N)
+        dec_out = dec_out.reshape(B, self.pred_len, N) + x_enc
         # De-Normalization from Non-stationary Transformer
         # dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
         # dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))

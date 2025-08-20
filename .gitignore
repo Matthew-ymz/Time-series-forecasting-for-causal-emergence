@@ -3,6 +3,7 @@
 *.pdf
 
 checkpoints/**
+dataset/**
 __pycache__/
 *.py[cod]
 *$py.class

@@ -110,10 +110,12 @@ def plot_singular_cum(test_id_first, eps = 'all', seed = 0, window=5, window2='a
  
     return gn_dic, gn_dic_std, singular, us, vts, mats, Sigs
 
-def analysis_u(us, seq_len, dims, start, end, interval, target=[0], space_only=False, windows='all', seed=0):
+def analysis_u(ss, us, seq_len, dims, start, end, interval, target=[0], space_only=False, windows='all', seed=0):
     if space_only:
         for i in range(start, end, interval):
             u = np.array(us[i])
+            s = np.array(ss[i])[seed, :, :]
+            u = u @ np.log(np.diag(s))
             u_col1 = u[seed, :, :]
             u_col1 = u_col1.reshape(seq_len,dims,-1)
             u_col1 = np.abs(u_col1)

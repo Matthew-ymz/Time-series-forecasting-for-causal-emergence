@@ -43,7 +43,9 @@ python -u run.py \
   --cov_bool \
   --loss_lam 0.001 \
   --jacobian \
-  --jac_init 14804 \
-  --jac_end 15200 \
-  --jac_interval 1 \
+  --jac_mean \
+  --jac_init 12594 \
+  --jac_end 15400 \
+  --jac_interval 96 \
+  --jac_mean_interval 15 \
   --freq_loss

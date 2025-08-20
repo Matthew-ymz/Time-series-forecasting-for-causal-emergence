@@ -344,19 +344,29 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
             preds.append(pred)
             trues.append(true)
+            #开始记录雅可比和协方差
             if (i > self.args.jac_init) and (i <= self.args.jac_end):
                 batch_list.append(batch_x)
                 if self.args.cov_mean:
                     L = self.cal_cov(batch_x,batch_y)
                     Ls = Ls + L
                     nums = nums + 1
+                
+                #如果要有采样间隔
                 if self.args.jac_mean and (i-self.args.jac_init) % self.args.jac_mean_interval == 0:
                     jac = self.cal_jac(dec_inp, batch_x)
                     if self.args.data == "QBO":
                         jacs = jacs @ jac
                     else:
                         jacs = jacs + jac
+                    L = self.cal_cov(batch_x,batch_y)
+                    if self.args.data == "QBO":
+                        Ls = Ls @ L
+                    else:
+                        Ls = Ls + L
                     nums = nums + 1
+
+                #输出的间隔
                 if (i-self.args.jac_init) % self.args.jac_interval == 0:
                     if self.args.data == "QBO":
                         store_time = i
@@ -365,7 +375,9 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     t = time.time()
                     print(f'elapse: {t-t0:.2}s')
                     t0 = t
+                    #如果要输出
                     if self.args.jacobian:
+                        #如果要取平均
                         if self.args.jac_mean:
                             if self.args.data == "QBO":
                                 jacs = fractional_matrix_power(jacs, 1/nums)
@@ -380,7 +392,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                             jac = self.cal_jac(dec_inp, batch_x)
                             np.save(jacobian_path + f'jac_{store_time:04}.npy', jac)
                         print(f'saving jacobian: jac_{store_time:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
-                    if self.args.jacobian:
+
+                        #如果要取mse做协方差
                         if self.args.cov_mean:
                             # import pdb; pdb.set_trace()
                             Ls = Ls / nums
@@ -388,8 +401,18 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                             Ls = np.zeros([size,size])
                             nums = 0
                         else:
-                            L = self.cal_cov(batch_x, batch_y)
-                            np.save(L_path + f'L_{store_time:04}.npy', L)
+                            if self.args.data == "QBO":
+                                Ls = fractional_matrix_power(Ls, 1/nums)
+                            else:
+                                Ls = Ls / nums
+                            np.save(L_path + f'L_{store_time:04}.npy', Ls)
+                            if self.args.data == "QBO":
+                                Ls = np.eye(size)
+                            else:
+                                Ls = np.zeros([size,size])
+                            # L = self.cal_cov(batch_x, batch_y)
+                            # np.save(L_path + f'L_{store_time:04}.npy', L)
+
                     if self.args.causal_net:
                         batch_x_cat = torch.cat(batch_list, dim=0)
                         ca_net = self.cal_causal_net(dec_inp, batch_x_cat)
