@@ -1206,3 +1206,6 @@ mse:71.12291717529297, mae:3.880141496658325, rmse:8.433440208435059, mape:8.939
 long_term_forecast_cov_daily_best_review_iTransformer_cov_QBO_ft-1_sl40_pl40_dm512_nh8_el4_dl1_df512_fc3_flocvali_first_lam0.001_dtTrue_Exp_0  
 mse:71.12291717529297, mae:3.880141496658325, rmse:8.433440208435059, mape:8.939628601074219, mspe:inf
 
+long_term_forecast_sir_testcode_NN_samp1000_sigma0.1_rho-0.5_lam1_dmodel128_0  
+mse:0.012217815034091473, mae:0.08830386400222778, rmse:0.11053422838449478, mape:2.4332072734832764, mspe:13035.701171875
+

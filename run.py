@@ -93,11 +93,8 @@ if __name__ == '__main__':
     parser.add_argument('--jac_init', type=int, default=1000, help='start time of jacobian output')
     parser.add_argument('--jac_end', type=int, default=2000, help='end time of jacobian output')
     parser.add_argument('--jac_interval', type=int, default=30, help='interval time of jacobian output')
-    parser.add_argument('--jac_mean', action='store_true', help='whether to mean jacobian')
-    parser.add_argument('--jac_mean_interval', type=int, default=5, help='interval time of sampling for calculating jacobian mean')
     parser.add_argument('--cov_mean', action='store_true', help='whether to mean cov matrix')
     parser.add_argument('--EI', action='store_true', help='whether to output EI')
-    parser.add_argument('--cov_bool', action='store_true', help='whether to output covariance matrix')
     parser.add_argument('--causal_net', action='store_true', help='whether to output causal network by IG')
     parser.add_argument('--channel_independence', type=int, default=0,
                         help='1: channel dependence 0: channel independence for FreTS model')
@@ -113,7 +110,6 @@ if __name__ == '__main__':
     parser.add_argument('--loss', type=str, default='MSE', help='loss function')
     parser.add_argument('--lradj', type=str, default='type0', help='adjust learning rate')
     parser.add_argument('--use_amp', action='store_true', help='use automatic mixed precision training', default=False)
-    parser.add_argument('--loss_lam', type=float, default=0.0, help='balance for MSE and log_likelihood')
 
     # GPU
     parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')

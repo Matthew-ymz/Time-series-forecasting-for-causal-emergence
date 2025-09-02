@@ -39,38 +39,14 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         model_optim = optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
         return model_optim
 
-    def _select_criterion(self,cov_b=False, lam=0):
+    def _select_criterion(self):
         if self.args.freq_loss:
             def criterion0(outputs, batch_y):
                 return (torch.fft.rfft(outputs, dim=1) - torch.fft.rfft(batch_y, dim=1)).abs().mean()  
         else:
             criterion0 = nn.MSELoss()
-
-        def nll_loss(mu, L, y):  
-            loss1 = criterion0(mu, y)
-            #L_diag = torch.exp(torch.diagonal(L, dim1=1, dim2=2))
-            #print(L.size())
-            # 计算多元高斯分布的负对数似然  
-            mvn = dist.MultivariateNormal(loc=mu, scale_tril=L)  
-            return (1-lam) * loss1 - lam * mvn.log_prob(y).mean() 
         
-        # def nll_loss(mu, L, y):
-        #     loss1 = criterion0(mu, y)
-        #     diff = y - mu  # 形状: (batch_size, n)
-        #     L_diag = torch.diagonal(L, dim1=-2, dim2=-1)  # 形状: (batch_size, n)
-        #     z = diff / torch.exp(L_diag)  # 形状: (batch_size, n)
-        #     mahalanobis = torch.sum(z**2, dim=-1)  # 形状: (batch_size,)
-        #     log_det = 2 * torch.sum(L_diag, dim=-1)  # 形状: (batch_size,)
-        #     n = L.shape[-1]  # 维度
-        #     log_prob = -0.5 * (n * torch.log(2 * torch.tensor(torch.pi)) + log_det + mahalanobis)  # 形状: (batch_size,)
-        #     #print("loss1:{0}  log_prob:{1}".format(loss1.item(),log_prob.mean().item()))
-        #     return (1-lam) * loss1 - lam * log_prob.mean()
-
-        if cov_b:
-            criterion = nll_loss
-        else:
-            criterion = criterion0
-        return criterion
+        return criterion0
 
     def model_step(self, idx, batch_x, batch_y, criterion):
         dec_inp = torch.zeros_like(batch_y[:, -self.args.pred_len:,:]).float().to(self.device)
@@ -84,10 +60,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             batch_y = batch_y[:, -self.args.pred_len:, self.args.features].to(self.device)
         outputs = outputs.reshape(-1, outputs.size(1)*outputs.size(2))
         batch_y = batch_y.reshape(-1, batch_y.size(1)*batch_y.size(2))
-        if self.args.cov_bool:
-            loss = criterion(outputs, ei_items["L"], batch_y)
-        else:
-            loss = criterion(outputs, batch_y)
+        loss = criterion(outputs, batch_y)
         return loss
     
     def vali(self, vali_data, vali_loader, criterion):
@@ -141,7 +114,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         early_stopping = EarlyStopping(patience=self.args.patience, verbose=True, delta=self.args.es_delta)
 
         model_optim = self._select_optimizer()
-        criterion = self._select_criterion(cov_b=self.args.cov_bool, lam=self.args.loss_lam)
+        criterion = self._select_criterion()
 
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
@@ -228,7 +201,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
     def cal_causal_net(self, dec_inp, batch_x):
         step_number = batch_x.size(1)
         space_number = batch_x.size(2)
-        if self.args.output_attention or self.args.cov_bool:
+        if self.args.output_attention:
             fun = lambda x: self.model(x, dec_inp)[0]#.reshape(-1,step_number*space_number)
         else:
             fun = lambda x: self.model(x, dec_inp)#.reshape(-1,step_number*space_number)
@@ -248,20 +221,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         return np.diag(mse_per_dimension)
     
     def cal_cov(self,batch_x,batch_y):
-        if self.args.cov_bool:
-            if "Transformer" in self.args.model:
-                mu, attn, L = self.model.forecast(batch_x)
-            else:
-                mu, L = self.model.forecast(batch_x)
-            L = torch.matmul(L, L.transpose(1, 2)) 
-            L = L.cpu().detach().data.numpy()[0]
+        if "Transformer" in self.args.model:
+            mu, attn = self.model.forecast(batch_x)
         else:
-            if "Transformer" in self.args.model:
-                mu, attn = self.model.forecast(batch_x)
-            else:
-                mu = self.model.forecast(batch_x)
-            mu = mu.cpu().detach().data.numpy()
-            L = self.MSED(mu, batch_y)
+            mu = self.model.forecast(batch_x)
+        mu = mu.cpu().detach().data.numpy()
+        L = self.MSED(mu, batch_y)
         return L
 
     def test(self, setting, test=0):
@@ -295,11 +260,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         self.model.eval()
         idx, batch_x, batch_y = next(iter(test_loader))
         size = batch_y.size(1)*batch_y.size(2)
-        jacs = np.zeros([size,size])
         Ls = np.zeros([size,size])
-        if self.args.data == "QBO":
-            jacs = np.eye(size)
-            Ls = np.eye(size)
         nums = 0
         batch_list = []
         for i, (idx, batch_x, batch_y) in enumerate(test_loader):
@@ -316,15 +277,11 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     outputs, items = self.model(batch_x, dec_inp)
                     if self.args.output_attention:
                         attn = items['attn']
-                    elif self.args.cov_bool:
-                        L = items['L']
 
             else:
                 outputs, items = self.model(batch_x, dec_inp)
                 if self.args.output_attention:
                     attn = items['attn']
-                elif self.args.cov_bool:
-                    L = items['L']
 
             outputs = outputs[:, -self.args.pred_len:, :]
             batch_y = batch_y[:, -self.args.pred_len:, :].to(self.device)
@@ -351,67 +308,30 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     L = self.cal_cov(batch_x,batch_y)
                     Ls = Ls + L
                     nums = nums + 1
-                
-                #如果要有采样间隔
-                if self.args.jac_mean and (i-self.args.jac_init) % self.args.jac_mean_interval == 0:
-                    jac = self.cal_jac(dec_inp, batch_x)
-                    if self.args.data == "QBO":
-                        jacs = jacs @ jac
-                    else:
-                        jacs = jacs + jac
-                    L = self.cal_cov(batch_x,batch_y)
-                    if self.args.data == "QBO":
-                        Ls = Ls @ L
-                    else:
-                        Ls = Ls + L
-                    nums = nums + 1
 
                 #输出的间隔
                 if (i-self.args.jac_init) % self.args.jac_interval == 0:
-                    if self.args.data == "QBO":
-                        store_time = i
-                    else:
-                        store_time = i - self.args.jac_interval + batch_x.size(1)
+                    store_time = i #- self.args.jac_interval + batch_x.size(1)
                     t = time.time()
                     print(f'elapse: {t-t0:.2}s')
                     t0 = t
                     #如果要输出
                     if self.args.jacobian:
-                        #如果要取平均
-                        if self.args.jac_mean:
-                            if self.args.data == "QBO":
-                                jacs = fractional_matrix_power(jacs, 1/nums)
-                            else:
-                                jacs = jacs / nums
-                            np.save(jacobian_path + f'jac_{store_time:04}.npy', jacs)
-                            if self.args.data == "QBO":
-                                jacs = np.eye(size)
-                            else:
-                                jacs = np.zeros([size,size])
-                        else:
-                            jac = self.cal_jac(dec_inp, batch_x)
-                            np.save(jacobian_path + f'jac_{store_time:04}.npy', jac)
-                        print(f'saving jacobian: jac_{store_time:04}.npy(size: {jac.dtype.itemsize * jac.size // 1024}KB); ')
+                        jac_out = self.cal_jac(dec_inp, batch_x)
+                        np.save(jacobian_path + f'jac_{store_time:04}.npy', jac_out)
+                        print(f'saving jacobian: jac_{store_time:04}.npy(size: {jac_out.dtype.itemsize * jac_out.size // 1024}KB); ')
 
                         #如果要取mse做协方差
                         if self.args.cov_mean:
                             # import pdb; pdb.set_trace()
-                            Ls = Ls / nums
-                            np.save(L_path + f'L_{store_time:04}.npy', Ls)
+                            L_out = Ls / nums
+                            np.save(L_path + f'L_{store_time:04}.npy', L_out)
                             Ls = np.zeros([size,size])
                             nums = 0
                         else:
-                            if self.args.data == "QBO":
-                                Ls = fractional_matrix_power(Ls, 1/nums)
-                            else:
-                                Ls = Ls / nums
-                            np.save(L_path + f'L_{store_time:04}.npy', Ls)
-                            if self.args.data == "QBO":
-                                Ls = np.eye(size)
-                            else:
-                                Ls = np.zeros([size,size])
-                            # L = self.cal_cov(batch_x, batch_y)
-                            # np.save(L_path + f'L_{store_time:04}.npy', L)
+                            L_out = self.cal_cov(batch_x, batch_y)
+                            np.save(L_path + f'L_{store_time:04}.npy', L_out)
+                        print(f'saving Cov: L_{store_time:04}.npy(size: {L_out.dtype.itemsize * L_out.size // 1024}KB); ')
 
                     if self.args.causal_net:
                         batch_x_cat = torch.cat(batch_list, dim=0)
@@ -423,7 +343,9 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         attn = attn.astype(np.float16)
                         np.save(attention_path + f'attn_{store_time:04}.npy', attn)
                         print(f'saving attention: attn_{store_time:04}.npy(size: {attn.dtype.itemsize * attn.size // 1024}KB); ')
+                    
                     input = batch_x.detach().cpu().numpy()
+
                     if test_data.scale and self.args.inverse:
                         shape = input.shape
                         input = test_data.inverse_transform(input.squeeze(0)).reshape(shape)

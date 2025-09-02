@@ -1,15 +1,15 @@
 #export CUDA_VISIBLE_DEVICES=0
 
-model_name=NN_cov
+model_name=NN
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 0 \
+  --is_training 1 \
   --root_path ./dataset/SIR/ \
-  --model_id sir_review \
+  --model_id sir_testcode \
   --model $model_name \
   --data SIR \
-  --size_list 9000 \
+  --size_list 1000 \
   --steps 7 \
   --sigma 0.1 \
   --rho -0.5 \
@@ -24,20 +24,17 @@ python -u run.py \
   --c_out 4 \
   --des 'Exp' \
   --d_model 128 \
-  --batch_size 100 \
+  --batch_size 32 \
   --learning_rate 0.001 \
   --patience 5 \
   --itr 1 \
-  --train_epochs 20 \
+  --train_epochs 10 \
   --seed 2050 \
-  --cov_bool \
-  --loss_lam 1 \
   --lradj type0 \
   --jacobian \
   --jac_init 0 \
-  --jac_end 54001 \
-  --jac_interval 53000 \
-  --jac_mean \
-  --jac_mean_interval 1000 \
+  --jac_end 1000 \
+  --jac_interval 100 \
+  --cov_mean \
 
  
