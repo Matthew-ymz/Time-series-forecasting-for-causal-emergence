@@ -24,3 +24,5 @@ done
 for init in 14888 14889 14890 14891 14892 14893; do
     scripts/QBO/iT_0802.sh $init 6
 done
+
+import pdb; pdb.set_trace()

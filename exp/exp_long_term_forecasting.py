@@ -323,7 +323,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
                         #如果要取mse做协方差
                         if self.args.cov_mean:
-                            # import pdb; pdb.set_trace()
                             L_out = Ls / nums
                             np.save(L_path + f'L_{store_time:04}.npy', L_out)
                             Ls = np.zeros([size,size])

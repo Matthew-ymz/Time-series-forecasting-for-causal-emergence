@@ -22,7 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('--model', type=str, required=True, default='Autoformer',
                         help='model name, options: [Autoformer, Transformer, TimesNet]')
     parser.add_argument('--prints', type=int, default=100, help='time steps for print during training')
-    parser.add_argument('--seed', type=int, default=2021, help='seed for multi-experiments')
+    parser.add_argument('--seed', type=int, default=2025, help='seed for multi-experiments')
 
     # data loader
     parser.add_argument('--data', type=str, required=True, default='SIR', help='dataset type')
@@ -179,7 +179,7 @@ if __name__ == '__main__':
                 args.d_model,
                 ii)
         else:
-            setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_lam{}_dt{}_{}_{}'.format(
+            setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_dt{}_{}_{}'.format(
                 args.task_name,
                 args.model_id,
                 args.model,
@@ -194,7 +194,6 @@ if __name__ == '__main__':
                 args.d_ff,
                 args.factor,
                 args.fold_loc,
-                args.loss_lam,
                 args.distil,
                 args.des, ii)
         return setting
