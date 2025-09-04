@@ -224,7 +224,7 @@ if __name__ == '__main__':
             exp = Exp(args)  # set experiments
             setting = set_setting(args, ii)
             print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
-            exp.test(setting)
+            exp.test(setting, test=1)
             torch.cuda.empty_cache()
         # ii = 0
         # setting = set_setting(args, ii)

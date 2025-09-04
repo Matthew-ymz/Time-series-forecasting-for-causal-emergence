@@ -4,7 +4,7 @@ model_name=NN
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 1 \
+  --is_training 0 \
   --root_path ./dataset/Couzin/ \
   --data_path couzin_simulation.csv \
   --model_id testcode \
@@ -29,8 +29,7 @@ python -u run.py \
   --train_epochs 10 \
   --inverse \
   --lradj type1 \
-
-  # --jacobian \
-  # --jac_init 7500 \
-  # --jac_end 8500 \
-  # --jac_interval 100 \
+  --jacobian \
+  --jac_init 10\
+  --jac_end 90 \
+  --jac_interval 1 \
