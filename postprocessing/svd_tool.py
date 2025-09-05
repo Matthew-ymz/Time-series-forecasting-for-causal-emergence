@@ -43,7 +43,7 @@ def compute_entropy(increments):
 def gini(jac_mean):
     return np.cumsum(jac_mean)[-1] / len(jac_mean) - 0.5
 
-def svd_jacs(test_id_first, start, end, interval, seed, eps):
+def svd_jacs(test_id_first, start, end, interval, seed, abs_bool):
     jacs = {i:[] for i in range(start, end, interval)}
     us = {i:[] for i in range(start, end, interval)}
     vts = {i:[] for i in range(start, end, interval)}
@@ -56,7 +56,7 @@ def svd_jacs(test_id_first, start, end, interval, seed, eps):
             mat = np.load(f'../results/jacobian/{test_id}/jac_{str_i}.npy')
             L = np.load(f'../results/cov_L/{test_id}/L_{str_i}.npy')
                 
-            u, s, vt = cal_W(mat, L, eps)
+            u, s, vt = cal_W(mat, L, abs_bool)
             jacs[i].append(s)
             us[i].append(u)
             vts[i].append(vt)
@@ -65,100 +65,84 @@ def svd_jacs(test_id_first, start, end, interval, seed, eps):
 
     return jacs, us, vts, mats, Sigs
 
-def plot_singular_cum(test_id_first, eps = 'all', seed = 0, window=5, window2='all', start=1, end=16435, interval=108, log_bool=False):
-    singular, us, vts, mats, Sigs = svd_jacs(test_id_first, start, end, interval, seed, eps)
-    gn_dic = {}
-    gn_dic_std = {}
-    fig1, ax1 = plt.subplots(figsize=(4, 3), dpi=100)
-    fig2, ax2 = plt.subplots(figsize=(4, 3), dpi=100)
-
-    for i in range(start, end, interval):
-        gn_ls = []
-        for k in range(seed):
+def plot_singular(test_id_first, seed = 0, window='all', start=1, end=1000, interval=1, log_bool=False, abs_bool=False, leg_show=False):
+    singular, us, vts, mats, Sigs = svd_jacs(test_id_first, start, end, interval, seed, abs_bool)
+    num_lines = (end - start) // interval + 1
+    cmap = plt.cm.viridis
+    for k in range(seed):
+        plt.figure(figsize=(10,8),dpi=150)
+        for idx, i in enumerate(range(start, end, interval)):
             jac_arr = np.array(singular[i][k])
+            if window == 'all':
+                window = len(jac_arr)
             if log_bool:
                 jac_arr = np.log(jac_arr)
-            jac_mean = jac_arr #np.mean(jac_arr, axis=0)
-            jac_mean_cum = np.cumsum(jac_mean)
-            jac_mean_cum /= jac_mean_cum[-1]
-            gn = gini(jac_mean_cum)
-            gn_ls.append(gn)
-        
-        gn_dic[i] = np.mean(gn_ls)
-        gn_dic_std[i] = np.std(gn_ls)
-        # entropy_dic[time_str] = entropy
-        ax1.plot(jac_mean[:window], 
-                label=str(i), 
-                alpha=0.5)
-        # plt.fill_between(range(window), jac_mean[:window]+jac_std[:window], jac_mean[:window]-jac_std[:window], alpha=0.15)
+                
+            # 归一化 idx 到0-1区间，做为colormap的输入
+            color_val = idx / (num_lines - 1)
+            color = cmap(color_val)
+            alpha = 0.5 + 0.5 * color_val
 
-        if window2 == 'all':
-            ax2.plot(jac_mean_cum, label=str(i), alpha=0.5)
-        else:
-            ax2.plot(jac_mean_cum[:window2], label=str(i), alpha=0.5)
-    ax2.set_xlabel("singular value index")
-    #plt.xticks(range(window), [1+i for i in range(window)])
-    ax2.set_ylabel("singular cumsum(normalized)")
-    # plt.ylim([0.4,1])
-    # plt.xlim([0,50])
-    ax2.legend(loc=[1.01,0])
+            plt.plot([j+1 for j in range(window)],jac_arr[:window], label=f'time_{i}', color=color, alpha=alpha)
+        plt.title(f'seed_{k}')
+        plt.xlabel('singular value index')
+        plt.ylabel('singular value')
+        if leg_show:
+            plt.legend()
+        plt.show()
 
-    ax1.set_xlabel("singular value index")
-    ax1.set_xticks(range(window), [1+i for i in range(window)])
-    ax1.set_ylabel("singular value")
-    ax1.legend(loc=[1.01,0])
- 
-    return gn_dic, gn_dic_std, singular, us, vts, mats, Sigs
+    return singular, us, vts, mats, Sigs
 
-def analysis_u(ss, us, seq_len, dims, start, end, interval, target=[0], space_only=False, windows='all', seed=0):
-    if space_only:
-        for i in range(start, end, interval):
-            u = np.array(us[i])
-            s = np.array(ss[i])[seed, :, :]
-            u = u @ np.log(np.diag(s))
-            u_col1 = u[seed, :, :]
-            u_col1 = u_col1.reshape(seq_len,dims,-1)
-            u_col1 = np.abs(u_col1)
-            u_col1 = np.mean(u_col1, axis=0)
-            plt.figure(dpi=100)
-            if windows=='all':
-                sns.heatmap(u_col1.T)
-            else:
-                sns.heatmap(u_col1.T[:windows,:])
-            plt.ylabel('macro dim')
-            plt.xlabel('micro dim')
-            plt.title(str(i))
-            plt.show()
-            plt.close()
-    else:
-        for j in target:
-            for i in range(start, end, interval):
-                u = np.array(us[i])
-                u_col1 = u[seed, :, j]
-                u_col1 = u_col1.reshape(seq_len,dims)
-                u_col1 = np.abs(u_col1)
-                plt.figure(dpi=100)
-                sns.heatmap(u_col1.T)
-                plt.ylabel('original dim')
-                plt.xlabel('time')
-                plt.title(str(i)+"_index={0}".format(j))
-                plt.show()
-                plt.close()
+# def analysis_u(ss, us, seq_len, dims, start, end, interval, target=[0], space_only=False, windows='all', seed=0):
+#     if space_only:
+#         for i in range(start, end, interval):
+#             u = np.array(us[i])
+#             s = np.array(ss[i])[seed, :, :]
+#             u = u @ np.log(np.diag(s))
+#             u_col1 = u[seed, :, :]
+#             u_col1 = u_col1.reshape(seq_len,dims,-1)
+#             u_col1 = np.abs(u_col1)
+#             u_col1 = np.mean(u_col1, axis=0)
+#             plt.figure(dpi=100)
+#             if windows=='all':
+#                 sns.heatmap(u_col1.T)
+#             else:
+#                 sns.heatmap(u_col1.T[:windows,:])
+#             plt.ylabel('macro dim')
+#             plt.xlabel('micro dim')
+#             plt.title(str(i))
+#             plt.show()
+#             plt.close()
+#     else:
+#         for j in target:
+#             for i in range(start, end, interval):
+#                 u = np.array(us[i])
+#                 u_col1 = u[seed, :, j]
+#                 u_col1 = u_col1.reshape(seq_len,dims)
+#                 u_col1 = np.abs(u_col1)
+#                 plt.figure(dpi=100)
+#                 sns.heatmap(u_col1.T)
+#                 plt.ylabel('original dim')
+#                 plt.xlabel('time')
+#                 plt.title(str(i)+"_index={0}".format(j))
+#                 plt.show()
+#                 plt.close()
     
-def analysis_u_mean(us, seq_len, dims, start, end, interval, targets):
+def analysis_u(us, dims, start, end, interval, macro_dim, seq_len=1, abs_bool=False):
     for i in range(start, end, interval):
         u = np.array(us[i])
-        u_col1 = u[0, :, :targets]
-        u_col1 = np.mean(u_col1, axis=-1)
-        u_col1 = u_col1.reshape(seq_len,dims)
-        u_col1 = np.abs(u_col1)
+        u_col1 = u[0, :, :macro_dim]
+        if seq_len > 1:
+            u_col1 = u_col1.reshape(seq_len,dims,macro_dim)
+        if abs_bool:
+            u_col1 = np.abs(u_col1)
         n_ticks = u_col1.shape[1]
         plt.figure(dpi=100)
-        sns.heatmap(u_col1.T)
-        plt.ylabel('original dim')
-        plt.xlabel('time')
-#             plt.xticks(ticks=np.arange(n_ticks) + 0.5, labels=np.arange(n_ticks), rotation=45, fontsize=6)
-        plt.title(str(i)+"_n={0}".format(targets))
+        sns.heatmap(u_col1.T, xticklabels=range(1, dims + 1), yticklabels=range(1, macro_dim + 1))
+        plt.ylabel('macro dim')
+        plt.xlabel('micro dim')
+        plt.title(f'time_{i}')
+        plt.show()
             
 def create_block_diagonal_matrix(matrix1, matrix2):
     if matrix1.ndim != 2 or matrix2.ndim != 2:
@@ -173,31 +157,26 @@ def create_block_diagonal_matrix(matrix1, matrix2):
     result[n1:, n1:] = matrix2
     return result
 
-def cal_W(A, Sigma, eps):
+def cal_W(A, Sigma, abs_bool=False):
     n = A.shape[0]
-    Sigma_pinv = np.linalg.pinv(Sigma, rcond=1e-15)
+    Sigma_pinv = np.linalg.inv(Sigma) #np.linalg.pinv(Sigma, rcond=1e-15)
     matrix_a = np.conj(A).T @ Sigma_pinv @ A
     matrix_b = Sigma_pinv
     block_matrix = create_block_diagonal_matrix(matrix_a, matrix_b)
     U, S, VT = np.linalg.svd(block_matrix)
-    if eps == "all":
-        U = np.abs(U)
-    else:
-        m = np.sum(S > float(eps)) 
-        if m==0:
-            m = 1
-        U = np.abs(U)[:, :m]
-        S = S[:m]
+    
     U2 = U[:n,:] + U[n:,:]
     U2 = U2 @ np.diag(S)
     U2U, S2, V2T = np.linalg.svd(U2)
-    if eps != "all":
-        m = np.sum(S2 > float(eps)) 
-        if m==0:
-            m = 1
-        U2U = U2U[:, :m]
-        V2T = V2T[:, :m]
-        S2 = S2[:m]
+    if abs_bool:
+        U2U = np.abs(U2U)
+#     if eps != "all":
+#         m = np.sum(S2 > float(eps)) 
+#         if m==0:
+#             m = 1
+#         U2U = U2U[:, :m]
+#         V2T = V2T[:, :m]
+#         S2 = S2[:m]
     return U2U, S2, V2T
 
 def extract_rows_with_interval(matrix, start_row_index, interval=37):
