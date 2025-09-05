@@ -4,10 +4,10 @@ model_name=NN
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 0 \
+  --is_training 1 \
   --root_path ./dataset/Couzin/ \
   --data_path couzin_simulation.csv \
-  --model_id testcode \
+  --model_id test_svd \
   --model $model_name \
   --data Couzin \
   --data_partition 0.8 0.1 0.1 \
@@ -22,14 +22,15 @@ python -u run.py \
   --d_model 256 \
   --d_ff 512 \
   --batch_size 8 \
-  --prints 5 \
+  --prints 10 \
   --learning_rate 0.001 \
   --patience 7 \
   --itr 1 \
-  --train_epochs 10 \
+  --train_epochs 15 \
   --inverse \
   --lradj type1 \
   --jacobian \
-  --jac_init 10\
-  --jac_end 90 \
-  --jac_interval 1 \
+  --jac_init 0\
+  --jac_end 1000 \
+  --jac_interval 5 \
+  --cov_mean \
