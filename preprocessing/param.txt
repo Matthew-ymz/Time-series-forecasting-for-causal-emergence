@@ -53,3 +53,8 @@
     #     dt=0.1,
     #     box_lengths=(50.0, 50.0, 50.0)
     # )
+
+
+
+    conda activate ymz_torch2
+    python preprocessing/couzin_model_python-5.py 

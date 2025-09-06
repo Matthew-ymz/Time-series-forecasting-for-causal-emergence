@@ -7,7 +7,7 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/Couzin/ \
   --data_path couzin_simulation.csv \
-  --model_id test_svd \
+  --model_id test_forecast_noise0.1 \
   --model $model_name \
   --data Couzin \
   --data_partition 0.8 0.1 0.1 \
@@ -16,8 +16,8 @@ python -u run.py \
   --seq_len 1 \
   --pred_len 1 \
   --downsample 1 \
-  --c_in 12 \
-  --c_out 12 \
+  --c_in 6 \
+  --c_out 6 \
   --des 'Exp' \
   --d_model 256 \
   --d_ff 512 \
@@ -28,9 +28,9 @@ python -u run.py \
   --itr 1 \
   --train_epochs 15 \
   --inverse \
-  --lradj type1 \
+  --lradj type0 \
   --jacobian \
   --jac_init 0\
   --jac_end 1000 \
-  --jac_interval 5 \
+  --jac_interval 20 \
   --cov_mean \

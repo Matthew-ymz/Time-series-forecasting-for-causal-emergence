@@ -128,7 +128,8 @@ def plot_singular(test_id_first, seed = 0, window='all', start=1, end=1000, inte
 #                 plt.show()
 #                 plt.close()
     
-def analysis_u(us, dims, start, end, interval, macro_dim, seq_len=1, abs_bool=False):
+def analysis_u(us, dims, start, end, interval, macro_dim, seq_len=1, abs_bool=False, mean_bool=False):
+    cg_mat = {}
     for i in range(start, end, interval):
         u = np.array(us[i])
         u_col1 = u[0, :, :macro_dim]
@@ -136,13 +137,28 @@ def analysis_u(us, dims, start, end, interval, macro_dim, seq_len=1, abs_bool=Fa
             u_col1 = u_col1.reshape(seq_len,dims,macro_dim)
         if abs_bool:
             u_col1 = np.abs(u_col1)
-        n_ticks = u_col1.shape[1]
+        u_col1 = u_col1.T
         plt.figure(dpi=100)
-        sns.heatmap(u_col1.T, xticklabels=range(1, dims + 1), yticklabels=range(1, macro_dim + 1))
+        sns.heatmap(u_col1, xticklabels=range(1, dims + 1), yticklabels=range(1, macro_dim + 1))
         plt.ylabel('macro dim')
         plt.xlabel('micro dim')
         plt.title(f'time_{i}')
         plt.show()
+        
+        cg_mat[i] = u_col1
+        
+    if mean_bool:
+        # 字典所有value装成一个3维数组（样本数, 行, 列）
+        stacked = np.stack(list(cg_mat.values()))  
+        avg_matrix = stacked.mean(axis=0)
+        plt.figure(dpi=100)
+        sns.heatmap(avg_matrix, xticklabels=range(1, dims + 1), yticklabels=range(1, macro_dim + 1))
+        plt.ylabel('macro dim')
+        plt.xlabel('micro dim')
+        plt.title(f'average')
+        plt.show()
+        
+    return cg_mat
             
 def create_block_diagonal_matrix(matrix1, matrix2):
     if matrix1.ndim != 2 or matrix2.ndim != 2:

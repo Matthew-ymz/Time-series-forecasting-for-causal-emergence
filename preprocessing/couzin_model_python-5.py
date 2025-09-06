@@ -522,19 +522,20 @@ class CouzinSwarmSimulation:
 
 def main():
     """主函数示例"""
+    global n_birds
     # 设置随机种子以确保可重现结果
     np.random.seed(42)
-    
+    n_birds = 1
     #swarm
     params = SwarmParameters(
-        number_of_fish=2,
+        number_of_fish=n_birds,
         repulsion_radius=1.0,
         orientation_width=1.1,
         attraction_width=15.1,
         angle_of_perception=math.pi * 270 / 180,
         turning_rate=math.pi * 40 / 180,
         speed=2.0,
-        noise_sigma=0.05,
+        noise_sigma=0.1,
         dt=0.1,
         box_lengths=(50.0, 50.0, 50.0)
     )
@@ -587,7 +588,7 @@ def main():
 
 if __name__ == "__main__":
     results = main()
-    n_birds = 2
+    
     plt.figure(figsize=(10, 8))
     ax = plt.subplot(111, projection='3d')
 
@@ -612,5 +613,5 @@ if __name__ == "__main__":
     ax.set_title('Birds 3D Trajectories')
     ax.legend()
     plt.tight_layout()
-    plt.savefig('dataset/Couzin/data_plot.png', dpi=300)  # 保存为高分辨率PNG
+    plt.savefig('preprocessing/data_plot.png', dpi=300)  # 保存为高分辨率PNG
     plt.close()  # 关闭窗口，防止重复显示
