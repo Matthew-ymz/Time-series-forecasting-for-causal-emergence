@@ -54,7 +54,8 @@ def svd_jacs(test_id_first, start, end, interval, seed, abs_bool):
         for i in range(start, end, interval):
             str_i = f'{i:04d}'
             mat = np.load(f'../results/jacobian/{test_id}/jac_{str_i}.npy')
-            L = np.load(f'../results/cov_L/{test_id}/L_{str_i}.npy')
+            L_vec = np.load(f'../results/cov_L/{test_id}/L_{str_i}.npy')
+            L = np.diag(L_vec)
                 
             u, s, vt = cal_W(mat, L, abs_bool)
             jacs[i].append(s)

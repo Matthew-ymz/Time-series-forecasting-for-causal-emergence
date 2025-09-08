@@ -218,7 +218,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         pred = pred.reshape(pred.shape[0],-1)
         true = true.reshape(pred.shape[0],-1)
         mse_per_dimension = np.mean((true - pred)**2, axis=0)
-        return np.diag(mse_per_dimension)
+        return mse_per_dimension #np.diag(mse_per_dimension)
     
     def cal_cov(self,batch_x,batch_y):
         if "Transformer" in self.args.model:
@@ -226,8 +226,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         else:
             mu = self.model.forecast(batch_x)
         mu = mu.cpu().detach().data.numpy()
-        L = self.MSED(mu, batch_y)
-        return L
+        L_vec = self.MSED(mu, batch_y)
+        return L_vec
 
     def test(self, setting, test=0):
         t0 = time.time()
@@ -261,8 +261,10 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         idx, batch_x, batch_y = next(iter(test_loader))
         size = batch_y.size(1)*batch_y.size(2)
         Ls = np.zeros([size,size])
-        nums = 0
         batch_list = []
+        sample_num = self.args.jac_end - self.args.jac_init
+        L_vec_ls = np.zeros([sample_num, size])
+        out_idx = []
         for i, (idx, batch_x, batch_y) in enumerate(test_loader):
             self.model.zero_grad()
             batch_x = batch_x.float().to(self.device)
@@ -304,13 +306,12 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             #开始记录雅可比和协方差
             if (i > self.args.jac_init) and (i <= self.args.jac_end):
                 batch_list.append(batch_x)
-                if self.args.cov_mean:
-                    L = self.cal_cov(batch_x,batch_y)
-                    Ls = Ls + L
-                    nums = nums + 1
+
+                L_vec_ls[i - self.args.jac_init - 1,: ] = self.cal_cov(batch_x,batch_y)
 
                 #输出的间隔
                 if (i-self.args.jac_init) % self.args.jac_interval == 0:
+                    out_idx.append(i-self.args.jac_init)
                     store_time = i #- self.args.jac_interval + batch_x.size(1)
                     t = time.time()
                     print(f'elapse: {t-t0:.2}s')
@@ -321,16 +322,16 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         np.save(jacobian_path + f'jac_{store_time:04}.npy', jac_out)
                         print(f'saving jacobian: jac_{store_time:04}.npy(size: {jac_out.dtype.itemsize * jac_out.size // 1024}KB); ')
 
-                        #如果要取mse做协方差
-                        if self.args.cov_mean:
-                            L_out = Ls / nums
-                            np.save(L_path + f'L_{store_time:04}.npy', L_out)
-                            Ls = np.zeros([size,size])
-                            nums = 0
-                        else:
-                            L_out = self.cal_cov(batch_x, batch_y)
-                            np.save(L_path + f'L_{store_time:04}.npy', L_out)
-                        print(f'saving Cov: L_{store_time:04}.npy(size: {L_out.dtype.itemsize * L_out.size // 1024}KB); ')
+                        # #如果要取mse做协方差
+                        # if self.args.cov_mean:
+                        #     L_out = Ls / nums
+                        #     np.save(L_path + f'L_{store_time:04}.npy', L_out)
+                        #     Ls = np.zeros([size,size])
+                        #     nums = 0
+                        # else:
+                        #     L_out = self.cal_cov(batch_x, batch_y)
+                        #     np.save(L_path + f'L_{store_time:04}.npy', L_out)
+                        # print(f'saving Cov: L_{store_time:04}.npy(size: {L_out.dtype.itemsize * L_out.size // 1024}KB); ')
 
                     if self.args.causal_net:
                         batch_x_cat = torch.cat(batch_list, dim=0)
@@ -368,6 +369,14 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         folder_path = './results/outputs/' + setting + '/'
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
+
+        m = self.args.cov_mean_num
+        kernel = np.ones(m) / m
+        Ls = np.apply_along_axis(lambda col: np.convolve(col, kernel, mode='valid'), axis=0, arr=L_vec_ls)
+        for id in out_idx:
+            L_out = Ls[id,:]
+            store_time = id + self.args.jac_init
+            np.save(L_path + f'L_{store_time:04}.npy', L_out)
 
         mae, mse, rmse, mape, mspe = metric(preds, trues)
         print('mse:{}, mae:{}'.format(mse, mae))

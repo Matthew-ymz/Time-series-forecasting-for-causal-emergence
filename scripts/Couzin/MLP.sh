@@ -4,7 +4,7 @@ model_name=NN
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 1 \
+  --is_training 0 \
   --root_path ./dataset/Couzin/ \
   --data_path couzin_simulation.csv \
   --model_id test_forecast_noise0.1 \
@@ -33,4 +33,4 @@ python -u run.py \
   --jac_init 0\
   --jac_end 1000 \
   --jac_interval 20 \
-  --cov_mean \
+  --cov_mean_num 5 \

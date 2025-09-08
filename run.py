@@ -93,7 +93,7 @@ if __name__ == '__main__':
     parser.add_argument('--jac_init', type=int, default=1000, help='start time of jacobian output')
     parser.add_argument('--jac_end', type=int, default=2000, help='end time of jacobian output')
     parser.add_argument('--jac_interval', type=int, default=30, help='interval time of jacobian output')
-    parser.add_argument('--cov_mean', action='store_true', help='whether to mean cov matrix')
+    parser.add_argument('--cov_mean_num', type=int, default=1, help='how many samples to mean cov matrix')
     parser.add_argument('--EI', action='store_true', help='whether to output EI')
     parser.add_argument('--causal_net', action='store_true', help='whether to output causal network by IG')
     parser.add_argument('--channel_independence', type=int, default=0,
