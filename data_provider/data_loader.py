@@ -553,3 +553,126 @@ class SWATSegLoader(Dataset):
                               index // self.step * self.win_size:index // self.step * self.win_size + self.win_size]), np.float32(
                 self.test_labels[index // self.step * self.win_size:index // self.step * self.win_size + self.win_size])
 
+class KuramotoModel(Dataset):
+    def __init__(self, path, sz, groups, batch_size, time_steps, dt, sample_interval, 
+                 coupling_strength, noise_level, flag, use_cache=True):
+        """
+        Initialize the Kuramoto model dataset.
+        
+        :param sz: Total number of oscillators
+        :param groups: Number of groups/clusters
+        :param batch_size: Number of trajectories to generate
+        :param time_steps: Total simulation steps
+        :param dt: Integration time step
+        :param sample_interval: Sampling interval for storing data
+        :param coupling_strength: Coupling strength parameter
+        :param noise_level: Noise intensity
+        :param flag: "train", "val", or "test" flag
+        """
+        self.path = path + flag + f"_sz{sz}_g{groups}_bs{batch_size}"
+        self.sz = sz
+        self.groups = groups
+        self.batch_size = batch_size
+        self.time_steps = time_steps
+        self.dt = dt
+        self.sample_interval = sample_interval
+        self.coupling_strength = coupling_strength
+        self.noise_level = noise_level
+        self.flag = flag
+        
+        # Initialize Kuramoto model parameters
+        self.obj_matrix, self.group_matrix, self.omegas = self.initialize_kuramoto(sz, groups)
+        
+        if use_cache and os.path.isfile(self.path):
+            loaded_data_dict = np.load(self.path, allow_pickle=True).item()
+            self.input = loaded_data_dict['input']
+            self.output = loaded_data_dict['output']
+        else:
+            self.input, self.output = self._simulate_multiseries()
+            data_dict = {
+                'input': self.input,
+                'output': self.output,
+            }
+            np.save(self.path, data_dict)
+
+    def initialize_kuramoto(self, sz, groups):
+        """Initialize Kuramoto model connectivity matrices."""
+        obj_matrix = torch.zeros([sz, sz])
+        group_matrix = torch.zeros([sz, groups])
+        
+        # Create block-diagonal connectivity (oscillators only connect within same group)
+        group_size = sz // groups
+        for k in range(groups):
+            for i in range(group_size):
+                for j in range(group_size):
+                    if i != j:  # No self-connections
+                        obj_matrix[i + k * group_size, j + k * group_size] = 1
+        
+        # Group membership matrix
+        for k in range(groups):
+            group_matrix[k * group_size:(k + 1) * group_size, k] = 1
+        
+        # Natural frequencies
+        omegas = torch.randn(sz)
+        
+        return obj_matrix, group_matrix, omegas
+
+    def one_step(self, thetas):
+        """Perform one integration step of Kuramoto model."""
+        ii = thetas.unsqueeze(0).repeat(thetas.size(0), 1)
+        jj = ii.transpose(0, 1)
+        dff = jj - ii
+        sindiff = torch.sin(dff)
+        mult = self.coupling_strength * self.obj_matrix @ sindiff
+        dia = torch.diagonal(mult, 0)
+        noise = torch.randn(self.sz) * self.noise_level
+        thetas = self.dt * (self.omegas + dia + noise) + thetas
+        return thetas
+
+    def compute_order_parameters(self, thetas):
+        """Compute order parameters (group-level observables)."""
+        cos_ccs = (torch.cos(thetas) @ self.group_matrix) * self.groups / self.sz
+        sin_ccs = (torch.sin(thetas) @ self.group_matrix) * self.groups / self.sz
+        return torch.cat([cos_ccs, sin_ccs], dim=0)
+
+    def simulate_oneserie(self):
+        """Simulate one trajectory of the Kuramoto model."""
+        thetas = torch.rand(self.sz) * 2 * np.pi
+        kuramoto_data = []
+        
+        for t in range(self.time_steps):
+            thetas = self.one_step(thetas)
+            
+            if t % self.sample_interval == 0:
+                # Compute observables: sine of phases and order parameters
+                phase_obs = torch.sin(thetas)
+                order_params = self.compute_order_parameters(thetas)
+                
+                # Combine into observation vector (individual phases + group order parameters)
+                obs = torch.cat([phase_obs, order_params])
+                kuramoto_data.append(obs.numpy())
+        
+        return np.array(kuramoto_data)
+
+    def _simulate_multiseries(self):
+        """Simulate multiple trajectories."""
+        num_obs = int(self.time_steps / self.sample_interval)
+        # Output dimension: individual phases (sz) + order parameters (2*groups)
+        output_dim = self.sz + 2 * self.groups
+        
+        kuramoto_data_all = np.zeros([self.batch_size, num_obs, output_dim])
+        
+        for i in range(self.batch_size):
+            kuramoto_data_all[i, :, :] = self.simulate_oneserie()
+        
+        # Reshape into input-output pairs
+        kuramoto_input = kuramoto_data_all[:, :-1, :].reshape(-1, 1, output_dim)
+        kuramoto_output = kuramoto_data_all[:, 1:, :].reshape(-1, 1, output_dim)
+        
+        return kuramoto_input, kuramoto_output
+
+    def __len__(self):
+        return len(self.input)
+
+    def __getitem__(self, idx):
+        return idx, torch.tensor(self.input[idx], dtype=torch.float), torch.tensor(self.output[idx], dtype=torch.float)
