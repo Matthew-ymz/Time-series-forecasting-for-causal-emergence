@@ -525,7 +525,7 @@ def main():
     global n_birds
     # 设置随机种子以确保可重现结果
     np.random.seed(42)
-    n_birds = 1
+    n_birds = 3
     #swarm
     params = SwarmParameters(
         number_of_fish=n_birds,
@@ -535,7 +535,7 @@ def main():
         angle_of_perception=math.pi * 270 / 180,
         turning_rate=math.pi * 40 / 180,
         speed=2.0,
-        noise_sigma=0.1,
+        noise_sigma=0.05,
         dt=0.1,
         box_lengths=(50.0, 50.0, 50.0)
     )
@@ -591,7 +591,7 @@ if __name__ == "__main__":
     
     plt.figure(figsize=(10, 8))
     ax = plt.subplot(111, projection='3d')
-
+    marker_interval = 20  # 每 20 步做一个标记
     colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown']
     for bird in range(n_birds):
         start_col = bird * 6
@@ -605,6 +605,14 @@ if __name__ == "__main__":
         ax.scatter(x[0], y[0], z[0], color=colors[bird], marker='o', s=60, label=f'Start of Bird {bird + 1}', edgecolors='k')
         # 标记终点
         ax.scatter(x[-1], y[-1], z[-1], color=colors[bird], marker='X', s=80, label=f'End of Bird {bird + 1}', edgecolors='k')
+
+        marker_indices = range(marker_interval, len(x), marker_interval)
+        ax.scatter(x[marker_indices], y[marker_indices], z[marker_indices], 
+                   color=colors[bird % len(colors)], 
+                   marker='^',  # 使用三角形作为间隔标记
+                   s=40,        # 标记大小
+                   edgecolors='k', # 加个黑边更清晰
+                   alpha=0.8)
 
 
     ax.set_xlabel('X')
