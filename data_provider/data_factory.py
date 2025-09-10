@@ -71,15 +71,15 @@ def data_provider(args, flag):
         elif args.data == "Kuramoto":
             data_set = Data(
                 path=args.root_path, 
-                sz = args.sz,
-                groups = args.groups, 
-                batch_size = args.batch_size, 
-                time_steps = args.time_steps, 
-                dt = args.dt, 
-                sample_interval = args.sample_interval, 
+                sz = args.sz_kuramoto,
+                groups = args.groups_kuramoto, 
+                batch_size = args.batch_size_kuramoto, 
+                time_steps = args.time_steps_kuramoto, 
+                dt = args.dt_kuramoto, 
+                sample_interval = args.sample_interval_kuramoto, 
                 coupling_strength = args.coupling_strength, 
-                noise_level = args.noise_level, 
-                flag = args.flag, 
+                noise_level = args.noise_level_kuramoto, 
+                flag = flag, 
                 use_cache = args.use_cache
             )
         else:
