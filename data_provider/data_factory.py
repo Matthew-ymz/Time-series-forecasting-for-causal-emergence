@@ -1,14 +1,8 @@
-from data_provider.data_loader import PSMSegLoader, \
-    MSLSegLoader, SMAPSegLoader, SMDSegLoader, SWATSegLoader, Dataset_Ca2p, SIRModel, Dataset_couzin, KuramotoModel
+from data_provider.data_loader import Dataset_Ca2p, SIRModel, Dataset_couzin, KuramotoModel
 from data_provider.uea import collate_fn
 from torch.utils.data import DataLoader
 
 data_dict = {
-    'PSM': PSMSegLoader,
-    'MSL': MSLSegLoader,
-    'SMAP': SMAPSegLoader,
-    'SMD': SMDSegLoader,
-    'SWAT': SWATSegLoader,
     'Ca2p': Dataset_Ca2p,
     'QBO': Dataset_Ca2p,
     'custom': Dataset_Ca2p,
