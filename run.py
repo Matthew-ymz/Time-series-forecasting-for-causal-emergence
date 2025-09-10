@@ -49,6 +49,16 @@ if __name__ == '__main__':
     parser.add_argument('--sigma', type=float,default=0.03, help='noise strength')
     parser.add_argument('--rho', type=float, default=-0.5, help='noise correlation param')
 
+    # data kuramoto
+    parser.add_argument('--sz_kuramoto', type=int, default=32, help='dataset size for kuramoto. Its sum is the total number of the init points.')
+    parser.add_argument('--groups_kuramoto', type=int, default=2, help='groups dividing of kuramoto')
+    parser.add_argument('--batch_size_kuramoto', type=int, default=1, help='samples of data')
+    parser.add_argument('--time_steps_kuramoto', type=int, default=1000, help='dynamic steps of sir')
+    parser.add_argument('--dt_kuramoto', type=float, default=0.01, help='dynamic dt for differential equations')
+    parser.add_argument('--sample_interval_kuramoto', type=int,default=1, help='sample interval of kuramoto')
+    parser.add_argument('--coupling_strength', type=float, default=2.0, help='coupling strength of kuramoto')
+    parser.add_argument('--noise_level_kuramoto', type=float, default=10, help='noise of kuramoto')
+
     #max EI
     parser.add_argument('--first_stage', type=int, default=2, help='len(epoch) of first stage for maxmize EI')
     parser.add_argument('--lambdas', type=float, default=1, help='balance param for two losses in maxmizing EI')
