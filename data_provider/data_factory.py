@@ -14,6 +14,7 @@ data_dict = {
     'custom': Dataset_Ca2p,
     'SIR': SIRModel,
     'Couzin': Dataset_couzin,
+    'Kuramoto':KuramotoModel,
 }
 
 
@@ -72,6 +73,20 @@ def data_provider(args, flag):
                 sigma=args.sigma,
                 rho=args.rho,
                 use_cache=args.use_cache
+            )
+        elif args.data == "Kuramoto":
+            data_set = Data(
+                path=args.root_path, 
+                sz = args.sz,
+                groups = args.groups, 
+                batch_size = args.batch_size, 
+                time_steps = args.time_steps, 
+                dt = args.dt, 
+                sample_interval = args.sample_interval, 
+                coupling_strength = args.coupling_strength, 
+                noise_level = args.noise_level, 
+                flag = args.flag, 
+                use_cache = args.use_cache
             )
         else:
             data_set = Data(
