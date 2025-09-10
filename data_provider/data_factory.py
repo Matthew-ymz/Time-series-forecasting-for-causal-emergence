@@ -1,5 +1,5 @@
 from data_provider.data_loader import PSMSegLoader, \
-    MSLSegLoader, SMAPSegLoader, SMDSegLoader, SWATSegLoader, Dataset_Ca2p, SIRModel, Dataset_couzin
+    MSLSegLoader, SMAPSegLoader, SMDSegLoader, SWATSegLoader, Dataset_Ca2p, SIRModel, Dataset_couzin, KuramotoModel
 from data_provider.uea import collate_fn
 from torch.utils.data import DataLoader
 
