@@ -460,6 +460,16 @@ class Micro_to_Macro(Dataset):
         self.output = loaded_data_dict['output']
         self.scale = True
 
+    # def __read_data__(self):
+    #     self.scaler = StandardScaler()
+
+    #     if self.scale:
+    #         train_data = df_data[border1s[0]:border2s[0]]
+    #         self.scaler.fit(train_data.values)
+    #         data = self.scaler.transform(df_data.values)
+    #     else:
+    #         data = df_data.values
+
     def __len__(self):
         return len(self.input)
 
