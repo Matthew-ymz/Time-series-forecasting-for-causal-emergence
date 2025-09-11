@@ -1,4 +1,4 @@
-from data_provider.data_loader import Dataset_Ca2p, SIRModel, Dataset_couzin, KuramotoModel
+from data_provider.data_loader import Dataset_Ca2p, SIRModel, Dataset_couzin, KuramotoModel, Micro_to_Macro
 from data_provider.uea import collate_fn
 from torch.utils.data import DataLoader
 
@@ -9,6 +9,7 @@ data_dict = {
     'SIR': SIRModel,
     'Couzin': Dataset_couzin,
     'Kuramoto':KuramotoModel,
+    'coarse_graining':Micro_to_Macro,
 }
 
 
@@ -28,7 +29,7 @@ def data_provider(args, flag):
         freq = args.freq
 
     
-    if args.task_name == 'long_term_forecast' or 'nn_forecast':
+    if args.task_name == 'long_term_forecast':
         if args.data == 'm4':
             drop_last = False
         elif args.data == 'Ca2p':
@@ -97,12 +98,24 @@ def data_provider(args, flag):
                 scale=False,
                 seasonal_patterns=args.seasonal_patterns
             )
+        
+    elif args.task_name == 'coarse_graining':
+        
+        Data = data_dict[args.task_name]
+        data_set = Data(
+                path=args.root_path,
+                data=args.data, 
+                micro_dims=args.c_in, 
+                macro_dims=args.c_out,
+                flag=flag
+            )
 
-        print(flag, len(data_set))
-        data_loader = DataLoader(
-            data_set,
-            batch_size=batch_size,
-            shuffle=shuffle_flag,
-            num_workers=args.num_workers,
-            drop_last=drop_last)
-        return data_set, data_loader
+    print(flag, len(data_set))
+    data_loader = DataLoader(
+        data_set,
+        batch_size=batch_size,
+        shuffle=shuffle_flag,
+        num_workers=args.num_workers,
+        drop_last=drop_last)
+
+    return data_set, data_loader

@@ -557,7 +557,7 @@ def main():
     simulation = CouzinSwarmSimulation(params)
     
     # 运行模拟
-    n_steps = 1000  
+    n_steps = 2000  
     results_df = simulation.simulate(n_steps)
 
     

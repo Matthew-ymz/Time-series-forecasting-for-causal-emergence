@@ -254,9 +254,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         if self.args.causal_net and (not os.path.exists(ca_path)):
             os.makedirs(ca_path)
 
-        if self.args.use_amp:
-            scaler = torch.cuda.amp.GradScaler()
-
         self.model.eval()
         idx, batch_x, batch_y = next(iter(test_loader))
         size = batch_y.size(1)*batch_y.size(2)
@@ -372,7 +369,17 @@ class Exp_Long_Term_Forecast(Exp_Basic):
 
         m = self.args.cov_mean_num
         kernel = np.ones(m) / m
-        Ls = np.apply_along_axis(lambda col: np.convolve(col, kernel, mode='valid'), axis=0, arr=L_vec_ls)
+        Ls = np.apply_along_axis(lambda col: np.convolve(col, kernel, mode='same'), axis=0, arr=L_vec_ls)
+        pad_len = m - 1
+        pad_before_len = pad_len // 2
+        pad_after_len = pad_len - pad_before_len
+        pad_before_values = Ls[pad_before_len, :]
+        pad_after_values = Ls[-pad_after_len-1, :] 
+        for p in range(pad_before_len):
+            Ls[p, :] = pad_before_values
+        for p in range(1, pad_after_len + 1):
+            Ls[-p, :] = pad_after_values
+
         for id in out_idx:
             L_out = Ls[id,:]
             store_time = id + self.args.jac_init

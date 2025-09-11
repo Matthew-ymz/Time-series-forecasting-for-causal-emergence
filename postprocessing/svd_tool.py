@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from scipy.linalg import sqrtm, inv
 import matplotlib.pyplot as plt
 from scipy.linalg import eig
@@ -160,7 +161,24 @@ def analysis_u(us, dims, start, end, interval, macro_dim, seq_len=1, abs_bool=Fa
         plt.show()
         
     return cg_mat
-            
+
+def save_cg(cg_mat, micro_dims, macro_dims, micro_path, macro_path):
+    df = pd.read_csv(micro_path)  
+    data_without_first_column = df.iloc[:, 1:]  
+    data_array = data_without_first_column.values  
+    micro_array = np.zeros([len(cg_mat.keys()), micro_dims])
+    macro_array = np.zeros([len(cg_mat.keys()), macro_dims])
+    for i,cg_index in enumerate(list(cg_mat.keys())):
+        micro_data = data_array[cg_index,:]
+        micro_array[i,:] = micro_data
+        macro_data = cg_mat[cg_index] @ micro_data
+        macro_array[i,:] = macro_data
+
+    data_dict = {'input': micro_array, 'output': macro_array}
+
+    np.save(macro_path, data_dict)
+    return
+
 def create_block_diagonal_matrix(matrix1, matrix2):
     if matrix1.ndim != 2 or matrix2.ndim != 2:
         raise ValueError("The input matrix must be two-dimensional.")

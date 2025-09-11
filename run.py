@@ -2,6 +2,7 @@ import argparse
 import os
 import torch
 from exp.exp_long_term_forecasting import Exp_Long_Term_Forecast
+from exp.exp_coarse_graining import Exp_Coarse_Graining
 from exp.exp_maxei import Exp_MaxEI
 from exp.exp_imputation import Exp_Imputation
 from exp.exp_anomaly_detection import Exp_Anomaly_Detection
@@ -64,8 +65,8 @@ if __name__ == '__main__':
     parser.add_argument('--lambdas', type=float, default=1, help='balance param for two losses in maxmizing EI')
 
     # forecasting task
-    parser.add_argument('--seq_len', type=int, default=96, help='input sequence length')
-    parser.add_argument('--pred_len', type=int, default=96, help='prediction sequence length')
+    parser.add_argument('--seq_len', type=int, default=1, help='input sequence length')
+    parser.add_argument('--pred_len', type=int, default=1, help='prediction sequence length')
     parser.add_argument('--seasonal_patterns', type=str, default='Monthly', help='subset for M4')
     parser.add_argument('--inverse', action='store_true', help='inverse output data', default=False)
 
@@ -153,6 +154,8 @@ if __name__ == '__main__':
 
     if args.task_name == 'long_term_forecast':
         Exp = Exp_Long_Term_Forecast
+    elif args.task_name == 'coarse_graining':
+        Exp = Exp_Coarse_Graining
     elif args.task_name == 'imputation':
         Exp = Exp_Imputation
     elif args.task_name == 'anomaly_detection':
@@ -165,47 +168,59 @@ if __name__ == '__main__':
         Exp = Exp_Long_Term_Forecast
 
     def set_setting(args, ii):
-        if args.data == "SIR":
-            if args.model_id == "sir_iid_noise":
-                setting = '{}_{}_{}_samp{}_sigma{}_ls{}_lam{}_dmodel{}_seed{}'.format(
-                args.task_name,
-                args.model_id,
-                args.model,
-                sum(args.size_list),
-                args.sigma,
-                args.latent_size,
-                args.lambdas,
-                args.d_model,
-                seed)
-            else:
-                setting = '{}_{}_{}_samp{}_sigma{}_rho{}_lam{}_dmodel{}_{}'.format(
-                args.task_name,
-                args.model_id,
-                args.model,
-                sum(args.size_list),
-                args.sigma,
-                args.rho,
-                args.lambdas,
-                args.d_model,
-                ii)
-        else:
-            setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_dt{}_{}_{}'.format(
+        if args.task_name == "coarse_graining":
+            setting = '{}_{}_{}_{}_{}_to_{}_dm{}_{}'.format(
                 args.task_name,
                 args.model_id,
                 args.model,
                 args.data,
-                args.features[0],
-                args.seq_len,
-                args.pred_len,
-                args.d_model,
-                args.n_heads,
-                args.e_layers,
-                args.d_layers,
-                args.d_ff,
-                args.factor,
-                args.fold_loc,
-                args.distil,
-                args.des, ii)
+                args.c_in,
+                args.c_out,
+                args.d_model, 
+                ii
+            )
+        else:
+            if args.data == "SIR":
+                if args.model_id == "sir_iid_noise":
+                    setting = '{}_{}_{}_samp{}_sigma{}_ls{}_lam{}_dmodel{}_seed{}'.format(
+                    args.task_name,
+                    args.model_id,
+                    args.model,
+                    sum(args.size_list),
+                    args.sigma,
+                    args.latent_size,
+                    args.lambdas,
+                    args.d_model,
+                    seed)
+                else:
+                    setting = '{}_{}_{}_samp{}_sigma{}_rho{}_lam{}_dmodel{}_{}'.format(
+                    args.task_name,
+                    args.model_id,
+                    args.model,
+                    sum(args.size_list),
+                    args.sigma,
+                    args.rho,
+                    args.lambdas,
+                    args.d_model,
+                    ii)
+            else:
+                setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_dt{}_{}_{}'.format(
+                    args.task_name,
+                    args.model_id,
+                    args.model,
+                    args.data,
+                    args.features[0],
+                    args.seq_len,
+                    args.pred_len,
+                    args.d_model,
+                    args.n_heads,
+                    args.e_layers,
+                    args.d_layers,
+                    args.d_ff,
+                    args.factor,
+                    args.fold_loc,
+                    args.distil,
+                    args.des, ii)
         return setting
     
     if args.is_training:

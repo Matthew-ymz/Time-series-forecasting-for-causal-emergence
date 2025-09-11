@@ -450,3 +450,18 @@ class KuramotoModel(Dataset):
 
     def __getitem__(self, idx):
         return idx, torch.tensor(self.input[idx], dtype=torch.float), torch.tensor(self.output[idx], dtype=torch.float)
+    
+
+class Micro_to_Macro(Dataset):
+    def __init__(self, path, data, micro_dims, macro_dims, flag):
+        self.path = path + data + f"_{micro_dims}_to_{macro_dims}.npy"
+        loaded_data_dict = np.load(self.path, allow_pickle=True).item()
+        self.input = loaded_data_dict['input']
+        self.output = loaded_data_dict['output']
+        self.scale = True
+
+    def __len__(self):
+        return len(self.input)
+
+    def __getitem__(self, idx):
+        return idx, torch.tensor(self.input[idx], dtype=torch.float), torch.tensor(self.output[idx], dtype=torch.float)

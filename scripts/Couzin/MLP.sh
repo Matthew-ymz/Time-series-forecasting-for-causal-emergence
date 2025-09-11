@@ -22,7 +22,7 @@ python -u run.py \
   --d_model 256 \
   --d_ff 512 \
   --batch_size 8 \
-  --prints 10 \
+  --prints 20 \
   --learning_rate 0.001 \
   --patience 7 \
   --itr 1 \
@@ -31,6 +31,6 @@ python -u run.py \
   --lradj type0 \
   --jacobian \
   --jac_init 0\
-  --jac_end 1000 \
-  --jac_interval 20 \
+  --jac_end 2000 \
+  --jac_interval 2 \
   --cov_mean_num 10 \

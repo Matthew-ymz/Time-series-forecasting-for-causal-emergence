@@ -50,11 +50,12 @@ class Model(nn.Module):
         # x_enc = x_enc - means
         # stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
         # x_enc = x_enc / stdev
+        if self.task_name == "long_term_forecast":
+            B, T, N = x_enc.shape
+            enc_0 = self.enc_embedding(x_enc)
+        else:
+            enc_0 = x_enc
 
-        B, T, N = x_enc.shape
-
-        # Embedding
-        enc_0 = self.enc_embedding(x_enc)
         enc_0 = self.fc1(enc_0)
         enc_out = self.dropout(enc_0)
         enc_out = self.relu(enc_out)
@@ -62,7 +63,10 @@ class Model(nn.Module):
         enc_out = self.dropout(enc_out)
         enc_out = self.relu(enc_out) #+ enc_0
         dec_out = self.projection(enc_out) 
-        dec_out = dec_out.reshape(B, self.pred_len, N) + x_enc
+        if self.task_name == "long_term_forecast":
+            dec_out = dec_out.reshape(B, self.pred_len, N) + x_enc
+        else:
+            dec_out = dec_out 
         # De-Normalization from Non-stationary Transformer
         # dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
         # dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
