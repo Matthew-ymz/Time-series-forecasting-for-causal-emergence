@@ -1,18 +1,18 @@
 from data_provider.data_factory import data_provider
 from exp.exp_basic import Exp_Basic
-from utils.tools import EarlyStopping, adjust_learning_rate, visual
+from utils.tools import EarlyStopping, adjust_learning_rate
 from utils.metrics import metric
-from utils.ei import EI
 import torch
 import torch.nn as nn
 from torch import optim
-from torch.func import jacfwd, jacrev
-import torch.distributions as dist 
 import os
 import time
 from datetime import datetime
 import warnings
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from captum.attr import IntegratedGradients
 
 warnings.filterwarnings('ignore')
@@ -43,7 +43,7 @@ class Exp_Coarse_Graining(Exp_Basic):
         return criterion0
     
     def model_step(self, idx, batch_x, batch_y, criterion):
-        dec_inp = torch.zeros_like(batch_y[:, :]).float().to(self.device)
+        dec_inp = torch.zeros_like(batch_y).float().to(self.device)
 
         outputs, _ = self.model(batch_x, dec_inp)
 
@@ -69,6 +69,23 @@ class Exp_Coarse_Graining(Exp_Basic):
         total_loss = np.average(total_loss)
         self.model.train()
         return total_loss
+    
+    def ig_cg(self, dec_inp, batch_x):
+        micro_dims = self.args.c_in
+        macro_dims = self.args.c_out
+        fun = lambda x: self.model(x, dec_inp)[0]
+        ig = IntegratedGradients(fun)
+        attribution = np.zeros((micro_dims,macro_dims))
+        if self.args.ig_baseline == "mean":
+            baseline = batch_x.mean(0).unsqueeze(0) 
+        else:
+            baseline = torch.zeros_like(batch_x).float().to(self.device)
+
+        for dim in range(macro_dims):
+                attributions,_ = ig.attribute(batch_x,target=dim, baselines=baseline, method='gausslegendre', return_convergence_delta=True) 
+                attributions = (attributions.abs().cpu().detach().numpy()).mean(0)
+                attribution[:, dim] = attributions
+        return attribution
     
     def train(self, setting):
         train_data, train_loader = self._get_data(flag='train')
@@ -167,13 +184,12 @@ class Exp_Coarse_Graining(Exp_Basic):
         preds = []
         trues = []
 
-        ca_path = './results/causal_net/' + setting + '/'
-        if self.args.causal_net and (not os.path.exists(ca_path)):
-            os.makedirs(ca_path)
+        ig_path = './results/ig_coarse_graining/' + setting + '/'
+        if self.args.ig_output and (not os.path.exists(ig_path)):
+            os.makedirs(ig_path)
 
         self.model.eval()
-        idx, batch_x, batch_y = next(iter(test_loader))
-        batch_list = []
+
         for i, (idx, batch_x, batch_y) in enumerate(test_loader):
             self.model.zero_grad()
             batch_x = batch_x.float().to(self.device)
@@ -202,15 +218,15 @@ class Exp_Coarse_Graining(Exp_Basic):
 
             preds.append(pred)
             trues.append(true)
-            #开始记录雅可比和协方差
-            if (i > self.args.jac_init) and (i <= self.args.jac_end):
-                store_time = i
-                batch_list.append(batch_x)
-                if self.args.causal_net:
-                    batch_x_cat = torch.cat(batch_list, dim=0)
-                    ca_net = self.cal_causal_net(dec_inp, batch_x_cat)
-                    np.save(ca_path + f'ca_{store_time:04}.npy', ca_net)
-                    batch_list = []
+            # #开始记录雅可比和协方差
+            # if (i > self.args.jac_init) and (i <= self.args.jac_end):
+            #     store_time = i
+            #     batch_list.append(batch_x)
+            #     if self.args.causal_net:
+            #         batch_x_cat = torch.cat(batch_list, dim=0)
+            #         ca_net = self.cal_causal_net(dec_inp, batch_x_cat)
+            #         np.save(ig_path + f'ca_{store_time:04}.npy', ca_net)
+            #         batch_list = []
                     
         preds = np.array(preds)
         trues = np.array(trues)
@@ -237,4 +253,23 @@ class Exp_Coarse_Graining(Exp_Basic):
         np.save(folder_path + 'pred.npy', preds)
         np.save(folder_path + 'true.npy', trues)
 
+        if self.args.ig_output:
+            micro_data = pd.read_csv(self.args.root_path+self.args.data_path)
+            micro_data = torch.tensor(micro_data.iloc[:, 1:].values).float().to(self.device)
+            macro_data, _ = self.model(micro_data, dec_inp)
+            macro_data_np = macro_data.detach().cpu().numpy()
+            df_to_save = pd.DataFrame(macro_data_np)
+            df_to_save = df_to_save.reset_index()
+            save_path = './dataset/' + self.args.data + f"/macro_{self.args.c_out}.csv"
+            df_to_save.to_csv(save_path, index=False)
+
+            attribution = self.ig_cg(dec_inp, micro_data)
+            full_path = ig_path + "ig_attribution.png"
+            plt.figure(dpi=100)
+            sns.heatmap(attribution.T, xticklabels=range(1, self.args.c_in + 1), yticklabels=range(1, self.args.c_out + 1))
+            plt.ylabel('macro dim')
+            plt.xlabel('micro dim')
+            plt.savefig(full_path, bbox_inches='tight', dpi=300)
+            plt.show()
+            
         return

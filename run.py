@@ -107,6 +107,8 @@ if __name__ == '__main__':
     parser.add_argument('--cov_mean_num', type=int, default=1, help='how many samples to mean cov matrix')
     parser.add_argument('--EI', action='store_true', help='whether to output EI')
     parser.add_argument('--causal_net', action='store_true', help='whether to output causal network by IG')
+    parser.add_argument('--ig_output', action='store_true', help='whether to output coarse graining by IG')
+    parser.add_argument('--ig_baseline',type=str, default='zero', help='IG baseline: zero, mean...')
     parser.add_argument('--channel_independence', type=int, default=0,
                         help='1: channel dependence 0: channel independence for FreTS model')
     # optimization

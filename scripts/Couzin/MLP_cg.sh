@@ -6,7 +6,8 @@ python -u run.py \
   --task_name coarse_graining \
   --is_training 1 \
   --root_path ./dataset/Couzin/ \
-  --model_id check_bug \
+  --data_path couzin_simulation.csv \
+  --model_id check_ig \
   --model $model_name \
   --data Couzin \
   --c_in 18 \
@@ -18,5 +19,7 @@ python -u run.py \
   --learning_rate 0.001 \
   --patience 7 \
   --itr 1 \
-  --train_epochs 15 \
+  --train_epochs 7 \
   --lradj type0 \
+  --ig_output \
+  --ig_baseline mean \
