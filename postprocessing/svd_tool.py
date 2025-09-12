@@ -67,7 +67,7 @@ def svd_jacs(test_id_first, start, end, interval, seed, abs_bool):
 
     return jacs, us, vts, mats, Sigs
 
-def plot_singular(test_id_first, seed = 0, window='all', start=1, end=1000, interval=1, log_bool=False, abs_bool=False, leg_show=False, mean_curve=True):
+def plot_singular(test_id_first, seed = 0, window='all', start=1, end=1000, interval=1, log_bool=False, abs_bool=False, leg_show=False, mean_curve=True, diff=False):
     singular, us, vts, mats, Sigs = svd_jacs(test_id_first, start, end, interval, seed, abs_bool)
     num_lines = (end - start) // interval + 1
     cmap = plt.cm.viridis
@@ -78,9 +78,15 @@ def plot_singular(test_id_first, seed = 0, window='all', start=1, end=1000, inte
             jac_arr = np.array(singular[i][k])
             if window == 'all':
                 window = len(jac_arr)
+            
+            if diff:
+                diff_curve = [jac_arr[d]-jac_arr[d+1] for d in range(window-1)]
+                diff_curve.append(0)
+                jac_arr = diff_curve
+                
             if log_bool:
                 jac_arr = np.log(jac_arr)
-                
+            
             # 归一化 idx 到0-1区间，做为colormap的输入
             color_val = idx / (num_lines - 1)
             color = cmap(color_val)

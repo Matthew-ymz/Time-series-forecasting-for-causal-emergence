@@ -7,7 +7,7 @@ python -u run.py \
   --is_training 0 \
   --root_path ./dataset/Couzin/ \
   --data_path couzin_simulation.csv \
-  --model_id onebird \
+  --model_id parallel \
   --model $model_name \
   --data Couzin \
   --data_partition 0.7 0.2 0.1 \
@@ -16,10 +16,10 @@ python -u run.py \
   --seq_len 1 \
   --pred_len 1 \
   --downsample 1 \
-  --c_in 6 \
-  --c_out 6 \
+  --c_in 60 \
+  --c_out 60 \
   --des 'Exp' \
-  --d_model 256 \
+  --d_model 128 \
   --d_ff 512 \
   --batch_size 8 \
   --prints 100 \
@@ -32,4 +32,4 @@ python -u run.py \
   --jac_init 0 \
   --jac_end 5000 \
   --jac_interval 20 \
-  --cov_mean_num 50 \
+  --cov_mean_num 4000 \

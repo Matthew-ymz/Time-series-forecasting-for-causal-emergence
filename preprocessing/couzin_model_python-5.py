@@ -525,13 +525,13 @@ def main():
     global n_birds
     # 设置随机种子以确保可重现结果
     np.random.seed(42)
-    n_birds = 1
+    n_birds = 10
     #swarm
     params = SwarmParameters(
         number_of_fish=n_birds,
         repulsion_radius=1.0,
-        orientation_width=1.1,
-        attraction_width=15.1,
+        orientation_width=10,
+        attraction_width=25,
         angle_of_perception=math.pi * 270 / 180,
         turning_rate=math.pi * 40 / 180,
         speed=2.0,
@@ -592,7 +592,9 @@ if __name__ == "__main__":
     plt.figure(figsize=(10, 8))
     ax = plt.subplot(111, projection='3d')
     marker_interval = 100  # 每 20 步做一个标记
-    colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown']
+    #colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown']
+    cmap = plt.get_cmap('plasma') 
+    colors = [cmap(i) for i in np.linspace(0, 1, n_birds)]
     for bird in range(n_birds):
         start_col = bird * 6
         pos_cols = list(range(start_col, start_col + 3))  # 这只鸟的位置x,y,z
@@ -600,19 +602,19 @@ if __name__ == "__main__":
         x = results.iloc[:, pos_cols[0]+1].values
         y = results.iloc[:, pos_cols[1]+1].values
         z = results.iloc[:, pos_cols[2]+1].values
-        ax.plot3D(x, y, z, label=f'Bird {bird + 1}', color=colors[bird], alpha=0.6, linewidth=2)
+        ax.plot3D(x, y, z, label=f'Bird {bird + 1}', color=colors[bird], alpha=2/n_birds, linewidth=2)
         # 标记起点
-        ax.scatter(x[0], y[0], z[0], color=colors[bird], marker='o', s=60, label=f'Start of Bird {bird + 1}', edgecolors='k')
+        ax.scatter(x[0], y[0], z[0], color=colors[bird], marker='o', s=60, edgecolors='k')
         # 标记终点
-        ax.scatter(x[-1], y[-1], z[-1], color=colors[bird], marker='X', s=80, label=f'End of Bird {bird + 1}', edgecolors='k')
+        ax.scatter(x[-1], y[-1], z[-1], color=colors[bird], marker='X', s=80, edgecolors='k')
 
-        marker_indices = range(marker_interval, len(x), marker_interval)
-        ax.scatter(x[marker_indices], y[marker_indices], z[marker_indices], 
-                   color=colors[bird % len(colors)], 
-                   marker='^',  # 使用三角形作为间隔标记
-                   s=40,        # 标记大小
-                   edgecolors='k', # 加个黑边更清晰
-                   alpha=0.8)
+        # marker_indices = range(marker_interval, len(x), marker_interval)
+        # ax.scatter(x[marker_indices], y[marker_indices], z[marker_indices], 
+        #            color=colors[bird % len(colors)], 
+        #            marker='^',  # 使用三角形作为间隔标记
+        #            s=40,        # 标记大小
+        #            edgecolors='k', # 加个黑边更清晰
+        #            alpha=0.8)
 
 
     ax.set_xlabel('X')

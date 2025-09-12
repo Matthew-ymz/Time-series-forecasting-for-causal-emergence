@@ -1,13 +1,13 @@
 #export CUDA_VISIBLE_DEVICES=0
-  
+#couzin_simulation.csv
 model_name=NN
 
 python -u run.py \
   --task_name coarse_graining \
   --is_training 1 \
   --root_path ./dataset/Couzin/ \
-  --data_path couzin_simulation.csv \
-  --model_id onebird \
+  --data_path  macro_6.csv\
+  --model_id twobird \
   --model $model_name \
   --data Couzin \
   --c_in 6 \
