@@ -220,13 +220,13 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         mse_per_dimension = np.mean((true - pred)**2, axis=0)
         return mse_per_dimension #np.diag(mse_per_dimension)
     
-    def cal_cov(self,batch_x,batch_y):
-        if "Transformer" in self.args.model:
-            mu, attn = self.model.forecast(batch_x)
-        else:
-            mu = self.model.forecast(batch_x)
-        mu = mu.cpu().detach().data.numpy()
-        L_vec = self.MSED(mu, batch_y)
+    def cal_cov(self,outputs,batch_y):
+        # if "Transformer" in self.args.model:
+        #     mu, attn = self.model.forecast(batch_x)
+        # else:
+        #     mu = self.model.forecast(batch_x)
+        # mu = mu.cpu().detach().data.numpy()
+        L_vec = self.MSED(outputs, batch_y)
         return L_vec
 
     def test(self, setting, test=0):
@@ -304,7 +304,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             if (i > self.args.jac_init) and (i <= self.args.jac_end):
                 batch_list.append(batch_x)
 
-                L_vec_ls[i - self.args.jac_init - 1,: ] = self.cal_cov(batch_x,batch_y)
+                L_vec_ls[i - self.args.jac_init - 1,: ] = self.cal_cov(outputs,batch_y)
 
                 #输出的间隔
                 if (i-self.args.jac_init) % self.args.jac_interval == 0:

@@ -270,6 +270,6 @@ class Exp_Coarse_Graining(Exp_Basic):
             plt.ylabel('macro dim')
             plt.xlabel('micro dim')
             plt.savefig(full_path, bbox_inches='tight', dpi=300)
-            plt.show()
+            plt.close()
             
         return

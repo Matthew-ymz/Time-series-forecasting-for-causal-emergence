@@ -45,11 +45,6 @@ class Model(nn.Module):
         return count, avg_log_jacobian
 
     def forecast(self, x_enc):
-        # Normalization from Non-stationary Transformer
-        # means = x_enc.mean(1, keepdim=True).detach()
-        # x_enc = x_enc - means
-        # stdev = torch.sqrt(torch.var(x_enc, dim=1, keepdim=True, unbiased=False) + 1e-5)
-        # x_enc = x_enc / stdev
         if self.task_name == "long_term_forecast":
             B, T, N = x_enc.shape
             enc_0 = self.enc_embedding(x_enc)
@@ -67,10 +62,8 @@ class Model(nn.Module):
             dec_out = dec_out.reshape(B, self.pred_len, N) + x_enc
         else:
             dec_out = dec_out 
-        # De-Normalization from Non-stationary Transformer
-        # dec_out = dec_out * (stdev[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
-        # dec_out = dec_out + (means[:, 0, :].unsqueeze(1).repeat(1, self.pred_len, 1))
-        return dec_out  #.reshape(B, self.pred_len, N)
+
+        return dec_out  
 
     def forward(self, x_enc, dec_inp=0, EI_bool=False):
         dec_out = self.forecast(x_enc)
