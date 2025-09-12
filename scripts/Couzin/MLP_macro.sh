@@ -1,0 +1,35 @@
+#export CUDA_VISIBLE_DEVICES=0
+  
+model_name=NN
+
+python -u run.py \
+  --task_name long_term_forecast \
+  --is_training 1 \
+  --root_path ./dataset/Couzin/ \
+  --data_path macro_3.csv \
+  --model_id onebird_macro \
+  --model $model_name \
+  --data Couzin \
+  --data_partition 0.7 0.2 0.1 \
+  --fold_loc 'normal' \
+  --target stage \
+  --seq_len 1 \
+  --pred_len 1 \
+  --downsample 1 \
+  --c_in 3 \
+  --c_out 3 \
+  --des 'Exp' \
+  --d_model 256 \
+  --d_ff 512 \
+  --batch_size 8 \
+  --prints 100 \
+  --learning_rate 0.001 \
+  --patience 7 \
+  --itr 1 \
+  --train_epochs 15 \
+  --lradj type0 \
+  --jacobian \
+  --jac_init 0 \
+  --jac_end 5000 \
+  --jac_interval 100 \
+  --cov_mean_num 10 \

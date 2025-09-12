@@ -1261,3 +1261,30 @@ mse:0.008403535932302475, mae:0.025518665090203285, rmse:0.09167080372571945, ma
 long_term_forecast_test_3bird_NN_Couzin_ft-1_sl1_pl1_dm256_nh8_el2_dl1_df512_fc1_flocnormal_dtTrue_Exp_0  
 mse:0.008403535932302475, mae:0.025518665090203285, rmse:0.09167080372571945, mape:0.09472379088401794, mspe:3.8441555500030518
 
+long_term_forecast_test_inverse_NN_Couzin_ft-1_sl1_pl1_dm256_nh8_el2_dl1_df512_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.003756864694878459, mae:0.007942692376673222, rmse:0.06129326671361923, mape:0.06837520748376846, mspe:30.49317741394043
+
+long_term_forecast_test_inverse_NN_Couzin_ft-1_sl1_pl1_dm256_nh8_el2_dl1_df512_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.010161054320633411, mae:0.03138108551502228, rmse:0.10080205649137497, mape:0.17976969480514526, mspe:25.386310577392578
+
+long_term_forecast_test_use_amp_NN_Couzin_ft-1_sl1_pl1_dm256_nh8_el2_dl1_df512_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.01038451213389635, mae:0.0322074331343174, rmse:0.10190442949533463, mape:0.23047341406345367, mspe:128.99990844726562
+
+long_term_forecast_onebird_NN_Couzin_ft-1_sl1_pl1_dm256_nh8_el2_dl1_df512_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.007602251134812832, mae:0.022847168147563934, rmse:0.0871908888220787, mape:0.012750901281833649, mspe:0.01711258664727211
+
+long_term_forecast_onebird_macro_NN_Couzin_ft-1_sl1_pl1_dm256_nh8_el2_dl1_df512_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.002467468613758683, mae:0.03143474459648132, rmse:0.049673620611429214, mape:0.04832478612661362, mspe:0.1469888836145401
+
+long_term_forecast_onebird_macro_NN_Couzin_ft-1_sl1_pl1_dm256_nh8_el2_dl1_df512_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.0024826095905154943, mae:0.0349302664399147, rmse:0.04982579126954079, mape:0.07396455854177475, mspe:1.612847924232483
+
+long_term_forecast_onebird_NN_Couzin_ft-1_sl1_pl1_dm256_nh8_el2_dl1_df512_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.007602251134812832, mae:0.022847168147563934, rmse:0.0871908888220787, mape:0.012750901281833649, mspe:0.01711258664727211
+
+long_term_forecast_onebird_NN_Couzin_ft-1_sl1_pl1_dm256_nh8_el2_dl1_df512_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.007602251134812832, mae:0.022847168147563934, rmse:0.0871908888220787, mape:0.012750901281833649, mspe:0.01711258664727211
+
+long_term_forecast_onebird_NN_Couzin_ft-1_sl1_pl1_dm256_nh8_el2_dl1_df512_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.007602251134812832, mae:0.022847168147563934, rmse:0.0871908888220787, mape:0.012750901281833649, mspe:0.01711258664727211
+

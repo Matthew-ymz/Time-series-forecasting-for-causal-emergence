@@ -525,7 +525,7 @@ def main():
     global n_birds
     # 设置随机种子以确保可重现结果
     np.random.seed(42)
-    n_birds = 3
+    n_birds = 1
     #swarm
     params = SwarmParameters(
         number_of_fish=n_birds,
@@ -557,7 +557,7 @@ def main():
     simulation = CouzinSwarmSimulation(params)
     
     # 运行模拟
-    n_steps = 2000  
+    n_steps = 5000  
     results_df = simulation.simulate(n_steps)
 
     
@@ -591,7 +591,7 @@ if __name__ == "__main__":
     
     plt.figure(figsize=(10, 8))
     ax = plt.subplot(111, projection='3d')
-    marker_interval = 20  # 每 20 步做一个标记
+    marker_interval = 100  # 每 20 步做一个标记
     colors = ['tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown']
     for bird in range(n_birds):
         start_col = bird * 6

@@ -67,12 +67,13 @@ def svd_jacs(test_id_first, start, end, interval, seed, abs_bool):
 
     return jacs, us, vts, mats, Sigs
 
-def plot_singular(test_id_first, seed = 0, window='all', start=1, end=1000, interval=1, log_bool=False, abs_bool=False, leg_show=False):
+def plot_singular(test_id_first, seed = 0, window='all', start=1, end=1000, interval=1, log_bool=False, abs_bool=False, leg_show=False, mean_curve=True):
     singular, us, vts, mats, Sigs = svd_jacs(test_id_first, start, end, interval, seed, abs_bool)
     num_lines = (end - start) // interval + 1
     cmap = plt.cm.viridis
     for k in range(seed):
         plt.figure(figsize=(10,8),dpi=150)
+        all_curves = []
         for idx, i in enumerate(range(start, end, interval)):
             jac_arr = np.array(singular[i][k])
             if window == 'all':
@@ -86,6 +87,18 @@ def plot_singular(test_id_first, seed = 0, window='all', start=1, end=1000, inte
             alpha = 0.5 + 0.5 * color_val
 
             plt.plot([j+1 for j in range(window)],jac_arr[:window], label=f'time_{i}', color=color, alpha=alpha)
+            all_curves.append(jac_arr[:window])
+            
+        if mean_curve and len(all_curves) > 0:
+            # 将所有曲线堆成矩阵 shape: (num_lines, window)
+            curves_matrix = np.stack(all_curves, axis=0)  # (num_lines, window)
+            mean_curve_arr = np.mean(curves_matrix, axis=0)
+            plt.plot(
+                [j + 1 for j in range(len(mean_curve_arr))], 
+                mean_curve_arr, 
+                color='red', linewidth=2, linestyle='--', label='mean curve'
+            )
+            
         plt.title(f'seed_{k}')
         plt.xlabel('singular value index')
         plt.ylabel('singular value')

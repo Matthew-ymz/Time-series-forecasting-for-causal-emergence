@@ -245,7 +245,7 @@ class Dataset_Ca2p(Dataset):
 
 class Dataset_couzin(Dataset):
     def __init__(self, root_path, flag='train', size=None,
-                 data_path='swarm_50_2000.csv', fold_loc='normal', data_partition = [0.7,0.1,0.2], scale=True, downsample=1):
+                 data_path='swarm_50_2000.csv', fold_loc='normal', data_partition = [0.7,0.1,0.2], scale=False, downsample=1):
 
         assert size != None, "You must specify the size of the dataset"
         self.seq_len = size[0]
@@ -295,6 +295,8 @@ class Dataset_couzin(Dataset):
         cols_data = df_raw.columns[1:]
         df_data = df_raw[cols_data]
 
+        print("scale:")
+        print(self.scale)
         if self.scale:
             train_data = df_data[border1s[0]:border2s[0]]
             self.scaler.fit(train_data.values)
