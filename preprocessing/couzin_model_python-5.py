@@ -525,13 +525,13 @@ def main():
     global n_birds
     # 设置随机种子以确保可重现结果
     np.random.seed(42)
-    n_birds = 10
+    n_birds = 2
     #swarm
     params = SwarmParameters(
         number_of_fish=n_birds,
         repulsion_radius=1.0,
-        orientation_width=10,
-        attraction_width=25,
+        orientation_width=1.1,
+        attraction_width=15.1,
         angle_of_perception=math.pi * 270 / 180,
         turning_rate=math.pi * 40 / 180,
         speed=2.0,
@@ -602,7 +602,7 @@ if __name__ == "__main__":
         x = results.iloc[:, pos_cols[0]+1].values
         y = results.iloc[:, pos_cols[1]+1].values
         z = results.iloc[:, pos_cols[2]+1].values
-        ax.plot3D(x, y, z, label=f'Bird {bird + 1}', color=colors[bird], alpha=2/n_birds, linewidth=2)
+        ax.plot3D(x, y, z, label=f'Bird {bird + 1}', color=colors[bird], alpha=min(1,2/n_birds), linewidth=2)
         # 标记起点
         ax.scatter(x[0], y[0], z[0], color=colors[bird], marker='o', s=60, edgecolors='k')
         # 标记终点

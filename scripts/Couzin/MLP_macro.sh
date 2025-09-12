@@ -6,7 +6,7 @@ python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/Couzin/ \
-  --data_path macro_6.csv \
+  --data_path macro_8.csv \
   --model_id twobird_macro \
   --model $model_name \
   --data Couzin \
@@ -16,10 +16,10 @@ python -u run.py \
   --seq_len 1 \
   --pred_len 1 \
   --downsample 1 \
-  --c_in 6 \
-  --c_out 6 \
+  --c_in 8 \
+  --c_out 8 \
   --des 'Exp' \
-  --d_model 256 \
+  --d_model 128 \
   --d_ff 512 \
   --batch_size 8 \
   --prints 100 \
@@ -32,4 +32,4 @@ python -u run.py \
   --jac_init 0 \
   --jac_end 5000 \
   --jac_interval 20 \
-  --cov_mean_num 50 \
+  --cov_mean_num 5000 \
