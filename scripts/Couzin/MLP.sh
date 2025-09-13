@@ -20,7 +20,7 @@ python -u run.py \
   --c_out 12 \
   --des 'Exp' \
   --d_model 128 \
-  --d_ff 512 \
+  --MLP_layers 1 \
   --batch_size 8 \
   --prints 100 \
   --learning_rate 0.001 \

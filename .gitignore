@@ -1,7 +1,7 @@
 *.nc
 *.npy
 *.pdf
-
+results/**
 checkpoints/**
 dataset/**
 __pycache__/

@@ -20,8 +20,11 @@ class Model(nn.Module):
         self.seq_len = configs.seq_len
         # Embedding
         self.enc_embedding = DataEmbedding_NN()
+        self.d_layers = configs.MLP_layers
         self.fc1 = nn.Linear(self.c_in * self.seq_len, configs.d_model)
-        self.fc2 = nn.Linear(configs.d_model, configs.d_model)
+        self.hidden_layers = nn.ModuleList(
+            [nn.Linear(configs.d_model, configs.d_model) for _ in range(self.d_layers)]
+        )
         self.relu = nn.LeakyReLU()
         self.dropout = nn.Dropout(p=0.1)
         self.func = lambda x: self.forecast(x)
@@ -51,12 +54,16 @@ class Model(nn.Module):
         else:
             enc_0 = x_enc
 
-        enc_0 = self.fc1(enc_0)
-        enc_out = self.dropout(enc_0)
+        enc_out = self.fc1(enc_0)
         enc_out = self.relu(enc_out)
-        enc_out = self.fc2(enc_out)
         enc_out = self.dropout(enc_out)
-        enc_out = self.relu(enc_out) #+ enc_0
+        for layer in self.hidden_layers:
+            residual = enc_out 
+            enc_out = layer(enc_out)
+            enc_out = self.relu(enc_out)
+            enc_out = self.dropout(enc_out)
+            enc_out = enc_out + residual
+
         dec_out = self.projection(enc_out) 
         if self.task_name == "long_term_forecast":
             dec_out = dec_out.reshape(B, self.pred_len, N) + x_enc

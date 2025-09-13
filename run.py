@@ -85,6 +85,7 @@ if __name__ == '__main__':
     parser.add_argument('--c_in', type=int, default=7, help='input size for MLP')
     parser.add_argument('--latent_size', type=int, default=2, help='latent space size for NIS')
     parser.add_argument('--d_model', type=int, default=512, help='dimension of model')
+    parser.add_argument('--MLP_layers', type=int, default=1, help='number of hidden layers of MLP')
     parser.add_argument('--n_heads', type=int, default=8, help='num of heads')
     parser.add_argument('--e_layers', type=int, default=2, help='num of encoder layers')
     parser.add_argument('--d_layers', type=int, default=1, help='num of decoder layers')
@@ -171,14 +172,15 @@ if __name__ == '__main__':
 
     def set_setting(args, ii):
         if args.task_name == "coarse_graining":
-            setting = '{}_{}_{}_{}_{}_to_{}_dm{}_{}'.format(
+            setting = '{}_{}_{}_{}_{}_to_{}_dm{}_layer{}_{}'.format(
                 args.task_name,
                 args.model_id,
                 args.model,
                 args.data,
                 args.c_in,
                 args.c_out,
-                args.d_model, 
+                args.d_model,
+                args.MLP_layers, 
                 ii
             )
         else:
@@ -204,6 +206,19 @@ if __name__ == '__main__':
                     args.rho,
                     args.lambdas,
                     args.d_model,
+                    ii)
+            elif args.data == "Couzin":
+                if args.model == "NN":
+                    setting = '{}_{}_{}_{}_sl{}_pl{}_dm{}_layer{}_floc{}_{}'.format(
+                    args.task_name,
+                    args.model_id,
+                    args.model,
+                    args.data,
+                    args.seq_len,
+                    args.pred_len,
+                    args.d_model,
+                    args.MLP_layers,
+                    args.fold_loc,
                     ii)
             else:
                 setting = '{}_{}_{}_{}_ft{}_sl{}_pl{}_dm{}_nh{}_el{}_dl{}_df{}_fc{}_floc{}_dt{}_{}_{}'.format(
