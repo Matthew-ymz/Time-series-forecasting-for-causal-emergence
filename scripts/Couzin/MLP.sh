@@ -4,7 +4,7 @@ model_name=NN
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 1 \
+  --is_training 0 \
   --root_path ./dataset/Couzin/ \
   --data_path couzin_simulation.csv \
   --model_id twobird \
@@ -31,5 +31,5 @@ python -u run.py \
   --jacobian \
   --jac_init 0 \
   --jac_end 5000 \
-  --jac_interval 20 \
+  --jac_interval 10 \
   --cov_mean_num 5000 \
