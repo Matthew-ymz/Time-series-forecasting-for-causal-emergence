@@ -7,11 +7,11 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/Couzin/ \
   --data_path  couzin_simulation.csv\
-  --model_id twobird_moresample \
+  --model_id 3bird \
   --model $model_name \
   --data Couzin \
-  --c_in 12 \
-  --c_out 8 \
+  --c_in 18 \
+  --c_out 6 \
   --des 'Exp' \
   --d_model 256 \
   --MLP_layers 2 \

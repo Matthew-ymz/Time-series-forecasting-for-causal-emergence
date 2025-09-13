@@ -4,7 +4,7 @@ model_name=NN
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 0 \
+  --is_training 1 \
   --root_path ./dataset/Couzin/ \
   --data_path couzin_simulation.csv \
   --model_id twobird \
@@ -16,8 +16,8 @@ python -u run.py \
   --seq_len 1 \
   --pred_len 1 \
   --downsample 1 \
-  --c_in 12 \
-  --c_out 12 \
+  --c_in 18 \
+  --c_out 18 \
   --des 'Exp' \
   --d_model 128 \
   --MLP_layers 1 \
