@@ -13,6 +13,7 @@ import torch.distributions as dist
 import os
 import time
 from datetime import datetime
+from tqdm import tqdm
 import warnings
 import numpy as np
 from captum.attr import IntegratedGradients
@@ -262,7 +263,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         sample_num = self.args.jac_end - self.args.jac_init
         L_vec_ls = np.zeros([sample_num, size])
         out_idx = []
-        for i, (idx, batch_x, batch_y) in enumerate(test_loader):
+        for i, (idx, batch_x, batch_y) in tqdm(enumerate(test_loader)):
             self.model.zero_grad()
             batch_x = batch_x.float().to(self.device)
             batch_y = batch_y.float().to(self.device)
@@ -310,25 +311,15 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 if (i-self.args.jac_init) % self.args.jac_interval == 0:
                     out_idx.append(i-self.args.jac_init)
                     store_time = i #- self.args.jac_interval + batch_x.size(1)
-                    t = time.time()
-                    print(f'elapse: {t-t0:.2}s')
-                    t0 = t
+                    #t = time.time()
+                    #print(f'elapse: {t-t0:.2}s')
+                    #t0 = t
                     #如果要输出
                     if self.args.jacobian:
                         jac_out = self.cal_jac(dec_inp, batch_x)
                         np.save(jacobian_path + f'jac_{store_time:04}.npy', jac_out)
-                        print(f'saving jacobian: jac_{store_time:04}.npy(size: {jac_out.dtype.itemsize * jac_out.size // 1024}KB); ')
-
-                        # #如果要取mse做协方差
-                        # if self.args.cov_mean:
-                        #     L_out = Ls / nums
-                        #     np.save(L_path + f'L_{store_time:04}.npy', L_out)
-                        #     Ls = np.zeros([size,size])
-                        #     nums = 0
-                        # else:
-                        #     L_out = self.cal_cov(batch_x, batch_y)
-                        #     np.save(L_path + f'L_{store_time:04}.npy', L_out)
-                        # print(f'saving Cov: L_{store_time:04}.npy(size: {L_out.dtype.itemsize * L_out.size // 1024}KB); ')
+                        if len(out_idx) == 1:
+                            print(f'saving jacobian: jac_{store_time:04}.npy(size: {jac_out.dtype.itemsize * jac_out.size // 1024}KB); ')
 
                     if self.args.causal_net:
                         batch_x_cat = torch.cat(batch_list, dim=0)
@@ -381,7 +372,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
             Ls[-p, :] = pad_after_values
 
         for id in out_idx:
-            L_out = Ls[id,:]
+            L_out = Ls[id-1,:]
             store_time = id + self.args.jac_init
             np.save(L_path + f'L_{store_time:04}.npy', L_out)
 

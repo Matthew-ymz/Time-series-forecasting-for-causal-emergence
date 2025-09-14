@@ -254,16 +254,32 @@ class Exp_Coarse_Graining(Exp_Basic):
         np.save(folder_path + 'true.npy', trues)
 
         if self.args.ig_output:
-            micro_data = pd.read_csv(self.args.root_path+self.args.data_path)
-            micro_data = torch.tensor(micro_data.iloc[:, 1:].values).float().to(self.device)
-            macro_data, _ = self.model(micro_data, dec_inp)
-            macro_data_np = macro_data.detach().cpu().numpy()
-            df_to_save = pd.DataFrame(macro_data_np)
-            df_to_save = df_to_save.reset_index()
-            save_path = './dataset/' + self.args.data + f"/macro_{self.args.c_out}.csv"
-            df_to_save.to_csv(save_path, index=False)
+            if self.args.one_serie:
+                micro_data = pd.read_csv(self.args.root_path+self.args.data_path)
+                micro_data = torch.tensor(micro_data.iloc[:, 1:].values).float().to(self.device)
+                macro_data, _ = self.model(micro_data, dec_inp)
+                macro_data_np = macro_data.detach().cpu().numpy()
+                df_to_save = pd.DataFrame(macro_data_np)
+                df_to_save = df_to_save.reset_index()
+                save_path = './dataset/' + self.args.data + f"/macro_{self.args.c_out}.csv"
+                df_to_save.to_csv(save_path, index=False)
+                attribution = self.ig_cg(dec_inp, micro_data)
+            else:
+                datas = np.load(self.args.root_path+self.args.data_path, allow_pickle=True)
+                micro_data = datas.item()
+                n_samp = micro_data['input'].shape[0]
+                micro_data_input = torch.tensor(micro_data['input'].reshape(n_samp, -1)).float().to(self.device)
+                micro_data_output = torch.tensor(micro_data['output'].reshape(n_samp, -1)).float().to(self.device)
+                macro_data_input, _ = self.model(micro_data_input, dec_inp)
+                macro_data_output, _ = self.model(micro_data_output, dec_inp)
+                data_dict = {
+                'input': macro_data_input.detach().cpu().numpy(),
+                'output': macro_data_output.detach().cpu().numpy(),
+                }
+                save_path = './dataset/' + self.args.data + f"/macro_{self.args.c_out}"
+                np.save(save_path, data_dict)
+                attribution = self.ig_cg(dec_inp, micro_data_output)
 
-            attribution = self.ig_cg(dec_inp, micro_data)
             full_path = ig_path + "ig_attribution.png"
             plt.figure(dpi=100)
             sns.heatmap(attribution.T, xticklabels=range(1, self.args.c_in + 1), yticklabels=range(1, self.args.c_out + 1))

@@ -109,6 +109,7 @@ if __name__ == '__main__':
     parser.add_argument('--EI', action='store_true', help='whether to output EI')
     parser.add_argument('--causal_net', action='store_true', help='whether to output causal network by IG')
     parser.add_argument('--ig_output', action='store_true', help='whether to output coarse graining by IG')
+    parser.add_argument('--one_serie', action='store_false', help='whether it has only one start points', default=True)
     parser.add_argument('--ig_baseline',type=str, default='zero', help='IG baseline: zero, mean...')
     parser.add_argument('--channel_independence', type=int, default=0,
                         help='1: channel dependence 0: channel independence for FreTS model')
@@ -185,28 +186,17 @@ if __name__ == '__main__':
             )
         else:
             if args.data == "SIR":
-                if args.model_id == "sir_iid_noise":
-                    setting = '{}_{}_{}_samp{}_sigma{}_ls{}_lam{}_dmodel{}_seed{}'.format(
-                    args.task_name,
-                    args.model_id,
-                    args.model,
-                    sum(args.size_list),
-                    args.sigma,
-                    args.latent_size,
-                    args.lambdas,
-                    args.d_model,
-                    seed)
-                else:
-                    setting = '{}_{}_{}_samp{}_sigma{}_rho{}_lam{}_dmodel{}_{}'.format(
-                    args.task_name,
-                    args.model_id,
-                    args.model,
-                    sum(args.size_list),
-                    args.sigma,
-                    args.rho,
-                    args.lambdas,
-                    args.d_model,
-                    ii)
+                setting = '{}_{}_{}_{}_samp{}_sigma{}_rho{}_dm{}_layer{}_{}'.format(
+                args.task_name,
+                args.model_id,
+                args.model,
+                args.data,
+                sum(args.size_list),
+                args.sigma,
+                args.rho,
+                args.d_model,
+                args.MLP_layers,
+                ii)
             elif args.data == "Couzin":
                 if args.model == "NN":
                     setting = '{}_{}_{}_{}_sl{}_pl{}_dm{}_layer{}_floc{}_{}'.format(

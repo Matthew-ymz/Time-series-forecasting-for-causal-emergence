@@ -4,14 +4,14 @@ model_name=NN
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 1 \
+  --is_training 0 \
   --root_path ./dataset/SIR/ \
-  --model_id sir_testcode \
+  --model_id ep15 \
   --model $model_name \
   --data SIR \
   --size_list 1000 \
   --steps 7 \
-  --sigma 0.1 \
+  --sigma 0.01 \
   --rho -0.5 \
   --beta 1 \
   --gamma 0.5 \
@@ -24,17 +24,18 @@ python -u run.py \
   --c_out 4 \
   --des 'Exp' \
   --d_model 128 \
+  --MLP_layers 1 \
   --batch_size 32 \
+  --print 100 \
   --learning_rate 0.001 \
   --patience 5 \
   --itr 1 \
-  --train_epochs 10 \
-  --seed 2050 \
+  --train_epochs 15 \
   --lradj type0 \
   --jacobian \
   --jac_init 0 \
-  --jac_end 1000 \
-  --jac_interval 100 \
-  --cov_mean \
+  --jac_end 6000 \
+  --jac_interval 5 \
+  --cov_mean_num 6000 \
 
  

@@ -181,12 +181,19 @@ def analysis_u(us, dims, start, end, interval, macro_dim, seq_len=1, abs_bool=Fa
         
     return cg_mat
 
-def save_cg(cg_mat, micro_dims, macro_dims, micro_path, macro_path):
-    df = pd.read_csv(micro_path)  
-    data_without_first_column = df.iloc[:, 1:]  
-    data_array = data_without_first_column.values  
+def save_cg(cg_mat, micro_dims, macro_dims, micro_path, macro_path, one_serie=True):
     micro_array = np.zeros([len(cg_mat.keys()), micro_dims])
     macro_array = np.zeros([len(cg_mat.keys()), macro_dims])
+    if one_serie:
+        df = pd.read_csv(micro_path)  
+        data_without_first_column = df.iloc[:, 1:]  
+        data_array = data_without_first_column.values  
+    else:
+        data = np.load(micro_path, allow_pickle=True)
+        data = data.item()
+        n = data['input'].shape[0]
+        data_array = data['input'].reshape(n, -1)
+        
     for i,cg_index in enumerate(list(cg_mat.keys())):
         micro_data = data_array[cg_index,:]
         micro_array[i,:] = micro_data
