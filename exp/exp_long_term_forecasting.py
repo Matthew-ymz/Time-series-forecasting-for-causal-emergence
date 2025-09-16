@@ -357,24 +357,25 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         folder_path = './results/outputs/' + setting + '/'
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
+            
+        if self.args.jacobian:
+            m = self.args.cov_mean_num
+            kernel = np.ones(m) / m
+            Ls = np.apply_along_axis(lambda col: np.convolve(col, kernel, mode='same'), axis=0, arr=L_vec_ls)
+            pad_len = m - 1
+            pad_before_len = pad_len // 2
+            pad_after_len = pad_len - pad_before_len
+            pad_before_values = Ls[pad_before_len, :]
+            pad_after_values = Ls[-pad_after_len-1, :] 
+            for p in range(pad_before_len):
+                Ls[p, :] = pad_before_values
+            for p in range(1, pad_after_len + 1):
+                Ls[-p, :] = pad_after_values
 
-        m = self.args.cov_mean_num
-        kernel = np.ones(m) / m
-        Ls = np.apply_along_axis(lambda col: np.convolve(col, kernel, mode='same'), axis=0, arr=L_vec_ls)
-        pad_len = m - 1
-        pad_before_len = pad_len // 2
-        pad_after_len = pad_len - pad_before_len
-        pad_before_values = Ls[pad_before_len, :]
-        pad_after_values = Ls[-pad_after_len-1, :] 
-        for p in range(pad_before_len):
-            Ls[p, :] = pad_before_values
-        for p in range(1, pad_after_len + 1):
-            Ls[-p, :] = pad_after_values
-
-        for id in out_idx:
-            L_out = Ls[id-1,:]
-            store_time = id + self.args.jac_init
-            np.save(L_path + f'L_{store_time:04}.npy', L_out)
+            for id in out_idx:
+                L_out = Ls[id-1,:]
+                store_time = id + self.args.jac_init
+                np.save(L_path + f'L_{store_time:04}.npy', L_out)
 
         mae, mse, rmse, mape, mspe = metric(preds, trues)
         print('mse:{}, mae:{}'.format(mse, mae))

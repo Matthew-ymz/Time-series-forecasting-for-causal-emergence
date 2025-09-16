@@ -8,6 +8,32 @@ import pandas as pd
 import math
 import seaborn as sns
 from scipy.optimize import curve_fit
+import pickle
+import sys
+import os
+import torch
+sys.path.append('..')
+from models import NIS, DLinear, iTransformer, iTransformer_cov, Transformer, NN, NISp, RNIS, NN_cov
+
+    
+def set_up(setting):
+    file_path = '../checkpoints/' + setting + "/args.pkl"
+    with open(file_path, 'rb') as f:
+        args = pickle.load(f)
+    model_dict = {
+            'DLinear': DLinear,
+            'iTransformer': iTransformer,
+            'iTransformer_cov': iTransformer_cov,
+            'Transformer': Transformer,
+            'NN': NN,
+            'NIS': NIS,
+            'NISp':NISp,
+            "RNIS":RNIS,
+            "NN_cov":NN_cov
+        }
+    model = model_dict[args.model].Model(args).float()
+    model.load_state_dict(torch.load(os.path.join('../checkpoints/' + setting, 'checkpoint.pth')))
+    return model
 
 def get_positive_contributions(jac_arr):    
     ave_sig = []

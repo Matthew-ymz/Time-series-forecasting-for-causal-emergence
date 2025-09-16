@@ -10,6 +10,7 @@ from exp.exp_classification import Exp_Classification
 from utils.print_args import print_args
 import random
 import numpy as np
+import pickle
 
 if __name__ == '__main__':
     
@@ -24,6 +25,7 @@ if __name__ == '__main__':
                         help='model name, options: [Autoformer, Transformer, TimesNet]')
     parser.add_argument('--prints', type=int, default=100, help='time steps for print during training')
     parser.add_argument('--seed', type=int, default=2025, help='seed for multi-experiments')
+    parser.add_argument('--save_model', action='store_true', help='whether to save models param', default=False)
 
     # data loader
     parser.add_argument('--data', type=str, required=True, default='SIR', help='dataset type')
@@ -242,6 +244,11 @@ if __name__ == '__main__':
 
             print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
             exp.train(setting)
+            if args.save_model:
+                #args_dict = vars(args)
+                file_path = './checkpoints/' + setting + "/args.pkl"
+                with open(file_path, 'wb') as f:
+                    pickle.dump(args, f)
 
             print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
             exp.test(setting)

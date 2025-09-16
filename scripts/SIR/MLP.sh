@@ -4,9 +4,9 @@ model_name=NN
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 0 \
+  --is_training 1 \
   --root_path ./dataset/SIR/ \
-  --model_id ep15 \
+  --model_id check_save_args \
   --model $model_name \
   --data SIR \
   --size_list 1000 \
@@ -32,10 +32,11 @@ python -u run.py \
   --itr 1 \
   --train_epochs 15 \
   --lradj type0 \
-  --jacobian \
-  --jac_init 0 \
-  --jac_end 6000 \
-  --jac_interval 5 \
-  --cov_mean_num 6000 \
+  --save_model \
+  # --jacobian \
+  # --jac_init 0 \
+  # --jac_end 6000 \
+  # --jac_interval 5 \
+  # --cov_mean_num 6000 \
 
  
