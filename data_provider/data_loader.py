@@ -454,6 +454,88 @@ class KuramotoModel(Dataset):
         return idx, torch.tensor(self.input[idx], dtype=torch.float), torch.tensor(self.output[idx], dtype=torch.float)
     
 
+class Dataset_Lorzen(Dataset):
+    def __init__(self, root_path, flag='train', size=None,
+                 data_path='data_1000.csv', fold_loc='normal', data_partition = [0.7,0.1,0.2], scale=True, downsample=1):
+
+        assert size != None, "You must specify the size of the dataset"
+        self.seq_len = size[0]
+        self.pred_len = size[1]
+        # init
+        assert flag in ['train', 'test', 'val', 'testall']
+        type_map = {'train': 0, 'val': 1, 'test': 2, 'testall': 3}
+        self.set_type = type_map[flag]
+        self.scale = scale
+        self.downsample = downsample
+
+        self.root_path = root_path
+        self.data_path = data_path
+        self.fold_loc = fold_loc
+        self.data_partition = data_partition 
+        self.__read_data__()
+
+    def __read_data__(self):
+        self.scaler = StandardScaler()
+        df_raw = pd.read_csv(os.path.join(self.root_path,
+                                          self.data_path))
+        '''
+        df_raw.columns: ['date', ...(other features), target feature]
+        '''
+        cols = list(df_raw.columns)
+        ind = cols[0]
+        cols.remove(ind)
+        ds_len = (len(df_raw) // self.downsample) - 1
+        num_train = int(ds_len * self.data_partition[0])
+        num_test = int(ds_len * self.data_partition[1])
+        num_vali = int(ds_len * self.data_partition[2])
+        if self.fold_loc == 'normal':
+            border1s = [0, num_train - self.seq_len, ds_len - num_test - self.seq_len, 0]
+            border2s = [num_train, num_train + num_vali, ds_len, ds_len]
+        elif self.fold_loc == 'vali_first':
+            border1s = [num_vali - self.seq_len, 0,        ds_len - num_test - self.seq_len, 0]
+            border2s = [num_vali + num_train,    num_vali, ds_len,                           ds_len]
+        elif self.fold_loc == 'vali_test_first':
+            border1s = [ds_len - num_train - self.seq_len, 0,        num_vali - self.seq_len, 0]
+            border2s = [ds_len,                            num_vali, num_vali + num_test,     ds_len]
+        else: 
+            print("Error for train_vali_test")
+        border1 = border1s[self.set_type]
+        border2 = border2s[self.set_type]
+        
+        cols_data = df_raw.columns[1:]
+        df_data = df_raw[cols_data]
+
+        if self.scale:
+            train_data = df_data[border1s[0]:border2s[0]]
+            self.scaler.fit(train_data.values)
+            data = self.scaler.transform(df_data.values)
+        else:
+            data = df_data.values
+        
+        data_x = []
+        step = self.downsample
+        for i in range(step):
+            data_x.append(data[border1 * step + i : border2 * step + i : step])
+
+        self.data_x = np.array(data_x)
+
+    def __getitem__(self, index):   
+        offset = index % self.downsample
+        s_begin = index // self.downsample
+        s_end = s_begin + self.seq_len
+        r_begin = s_end
+        r_end = r_begin + self.pred_len
+        seq_x = self.data_x[offset, s_begin:s_end]
+        seq_y = self.data_x[offset, r_begin:r_end]        
+        return index, seq_x, seq_y
+
+    def __len__(self):
+        return (self.data_x.shape[1] - self.seq_len - self.pred_len + 1) * self.downsample
+
+    def inverse_transform(self, data):
+        return self.scaler.inverse_transform(data)
+
+
 class Micro_to_Macro(Dataset):
     def __init__(self, path, data, micro_dims, macro_dims, flag):
         self.path = path + data + f"_{micro_dims}_to_{macro_dims}.npy"

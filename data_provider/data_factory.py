@@ -1,4 +1,4 @@
-from data_provider.data_loader import Dataset_Ca2p, SIRModel, Dataset_couzin, KuramotoModel, Micro_to_Macro
+from data_provider.data_loader import Dataset_Ca2p, SIRModel, Dataset_couzin, Dataset_Lorzen, KuramotoModel, Micro_to_Macro
 from data_provider.uea import collate_fn
 from torch.utils.data import DataLoader
 
@@ -10,6 +10,7 @@ data_dict = {
     'Couzin': Dataset_couzin,
     'Kuramoto':KuramotoModel,
     'coarse_graining':Micro_to_Macro,
+    'Lorzen':Dataset_Lorzen,
 }
 
 
@@ -55,6 +56,7 @@ def data_provider(args, flag):
                 downsample=args.downsample,
                 fold_loc=args.fold_loc,
             )
+        
         elif args.data == "SIR":
             data_set = Data(
                 path=args.root_path,
@@ -83,6 +85,16 @@ def data_provider(args, flag):
                 flag = flag, 
                 use_cache = args.use_cache
             )
+        elif args.data == 'Lorzen':
+            data_set = Data(
+                root_path=args.root_path,
+                data_path=args.data_path,
+                data_partition=args.data_partition,
+                flag=flag,
+                size=[args.seq_len, args.pred_len],
+                downsample=args.downsample,
+                fold_loc=args.fold_loc,
+            )
         else:
             data_set = Data(
                 root_path=args.root_path,
@@ -98,7 +110,7 @@ def data_provider(args, flag):
                 scale=False,
                 seasonal_patterns=args.seasonal_patterns
             )
-        
+    
     elif args.task_name == 'coarse_graining':
         
         Data = data_dict[args.task_name]
