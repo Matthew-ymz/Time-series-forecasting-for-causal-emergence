@@ -355,6 +355,7 @@ class KuramotoModel(Dataset):
         self.coupling_strength = coupling_strength
         self.noise_level = noise_level
         self.flag = flag
+        self.scale = False
         
         # Initialize Kuramoto model parameters
         self.obj_matrix, self.group_matrix, self.omegas = self.initialize_kuramoto(sz, groups)
