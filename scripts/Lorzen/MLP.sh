@@ -19,7 +19,6 @@ nohup python -u run.py \
   --seq_len 1 \
   --pred_len 1 \
   --downsample 1 \
-  --gpu 5 \
   --c_in 6 \
   --c_out 6 \
   --des 'Exp' \
