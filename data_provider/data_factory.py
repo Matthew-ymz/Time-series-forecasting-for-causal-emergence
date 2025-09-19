@@ -60,6 +60,7 @@ def data_provider(args, flag):
         elif args.data == "SIR":
             data_set = Data(
                 path=args.root_path,
+                data_path=args.data_path,
                 size_list=args.size_list,
                 beta=args.beta,
                 gamma=args.gamma,

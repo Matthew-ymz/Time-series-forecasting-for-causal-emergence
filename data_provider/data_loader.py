@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore')
 
 
 class SIRModel(Dataset):
-    def __init__(self, path, size_list, beta, gamma, steps, dt, interval, sigma, rho, flag, use_cache=True):
+    def __init__(self, path, data_path, size_list, beta, gamma, steps, dt, interval, sigma, rho, flag, use_cache=True):
         """
         Initialize the SIR model dataset.
         
@@ -35,6 +35,7 @@ class SIRModel(Dataset):
         self.beta, self.gamma = beta, gamma
         self.sigma, self.rho = sigma, rho
         self.path = path+flag+f"_{sum(self.size_list) * self.steps}_{self.sigma}"
+        self.data_path = data_path
         self.dt = dt
         self.interval = interval
         self.scale = False
@@ -42,8 +43,12 @@ class SIRModel(Dataset):
 
         #self.data = self.simulate_multiseries(size_list)
         self.prior = multivariate_normal(mean=np.zeros(2), cov=np.array([[1, rho], [rho, 1]]))
-        #self.__read_data__()
-        if use_cache and os.path.isfile(self.path):
+        if 'macro' in self.data_path:
+            loaded_data_dict = np.load(path+self.data_path, allow_pickle=True).item()
+            self.input = loaded_data_dict['input']
+            self.output = loaded_data_dict['output']
+
+        elif use_cache and os.path.isfile(self.path):
             loaded_data_dict = np.load(self.path, allow_pickle=True).item()
             self.input = loaded_data_dict['input']
             self.output = loaded_data_dict['output']

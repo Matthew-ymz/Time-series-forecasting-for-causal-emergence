@@ -268,8 +268,8 @@ class Exp_Coarse_Graining(Exp_Basic):
                 datas = np.load(self.args.root_path+self.args.data_path, allow_pickle=True)
                 micro_data = datas.item()
                 n_samp = micro_data['input'].shape[0]
-                micro_data_input = torch.tensor(micro_data['input'].reshape(n_samp, -1)).float().to(self.device)
-                micro_data_output = torch.tensor(micro_data['output'].reshape(n_samp, -1)).float().to(self.device)
+                micro_data_input = torch.tensor(micro_data['input']).float().to(self.device)
+                micro_data_output = torch.tensor(micro_data['output']).float().to(self.device)
                 macro_data_input, _ = self.model(micro_data_input, dec_inp)
                 macro_data_output, _ = self.model(micro_data_output, dec_inp)
                 data_dict = {
@@ -278,7 +278,7 @@ class Exp_Coarse_Graining(Exp_Basic):
                 }
                 save_path = './dataset/' + self.args.data + f"/macro_{self.args.c_out}"
                 np.save(save_path, data_dict)
-                attribution = self.ig_cg(dec_inp, micro_data_output)
+                attribution = self.ig_cg(dec_inp, micro_data_output.reshape(n_samp,-1))
 
             full_path = ig_path + "ig_attribution.png"
             plt.figure(dpi=100)

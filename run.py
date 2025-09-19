@@ -44,7 +44,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_partition', type=float, nargs='+', default=[0.7, 0.1, 0.2], help='partition for train, vali and test')
     
     # data sir
-    parser.add_argument('--size_list', type=int, nargs='+', default=9000, help='dataset size for sir. Its sum is the total number of the init points.')
+    parser.add_argument('--size_list', type=int, nargs='+', default=[9000], help='dataset size for sir. Its sum is the total number of the init points.')
     parser.add_argument('--beta', type=float, default=1, help='dynamic param of sir')
     parser.add_argument('--gamma', type=float, default=0.5, help='dynamic param of sir')
     parser.add_argument('--steps', type=int, default=7, help='dynamic steps of sir')

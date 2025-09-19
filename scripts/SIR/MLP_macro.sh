@@ -6,22 +6,16 @@ python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/SIR/ \
-  --model_id check_save_args \
+  --data_path macro_2.npy \
+  --model_id check_macro \
   --model $model_name \
   --data SIR \
-  --size_list 1000 \
-  --steps 7 \
-  --sigma 0.01 \
-  --rho -0.5 \
-  --beta 1 \
-  --gamma 0.5 \
-  --dt 0.01 \
   --target stage \
   --seq_len 1 \
   --pred_len 1 \
   --downsample 1 \
-  --c_in 4 \
-  --c_out 4 \
+  --c_in 2 \
+  --c_out 2 \
   --des 'Exp' \
   --d_model 128 \
   --MLP_layers 1 \
@@ -33,10 +27,10 @@ python -u run.py \
   --train_epochs 15 \
   --lradj type0 \
   --save_model \
-  --jacobian \
-  --jac_init 0 \
-  --jac_end 6000 \
-  --jac_interval 5 \
-  --cov_mean_num 6000 \
+  # --jacobian \
+  # --jac_init 0 \
+  # --jac_end 6000 \
+  # --jac_interval 5 \
+  # --cov_mean_num 6000 \
 
  
