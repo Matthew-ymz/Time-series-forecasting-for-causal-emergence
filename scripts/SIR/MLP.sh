@@ -6,7 +6,7 @@ python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/SIR/ \
-  --model_id check_save_args \
+  --model_id for_macro_dyn \
   --model $model_name \
   --data SIR \
   --size_list 1000 \
@@ -25,7 +25,7 @@ python -u run.py \
   --des 'Exp' \
   --d_model 128 \
   --MLP_layers 1 \
-  --batch_size 32 \
+  --batch_size 16 \
   --print 100 \
   --learning_rate 0.001 \
   --patience 5 \
@@ -36,7 +36,7 @@ python -u run.py \
   --jacobian \
   --jac_init 0 \
   --jac_end 6000 \
-  --jac_interval 5 \
+  --jac_interval 1 \
   --cov_mean_num 6000 \
 
  

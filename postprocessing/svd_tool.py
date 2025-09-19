@@ -175,7 +175,7 @@ def plot_singular(test_id_first, seed = 0, window='all', start=1, end=1000, inte
 #                 plt.show()
 #                 plt.close()
     
-def analysis_u(us, dims, start, end, interval, macro_dim, seq_len=1, abs_bool=False, mean_bool=False):
+def analysis_u(us, dims, start, end, interval, macro_dim, seq_len=1, abs_bool=False, mean_bool=False, show_bool=True):
     cg_mat = {}
     for i in range(start, end, interval):
         u = np.array(us[i])
@@ -185,12 +185,13 @@ def analysis_u(us, dims, start, end, interval, macro_dim, seq_len=1, abs_bool=Fa
         if abs_bool:
             u_col1 = np.abs(u_col1)
         u_col1 = u_col1.T
-        plt.figure(dpi=100)
-        sns.heatmap(u_col1, xticklabels=range(1, dims + 1), yticklabels=range(1, macro_dim + 1))
-        plt.ylabel('macro dim')
-        plt.xlabel('micro dim')
-        plt.title(f'time_{i}')
-        plt.show()
+        if show_bool:
+            plt.figure(dpi=100)
+            sns.heatmap(u_col1, xticklabels=range(1, dims + 1), yticklabels=range(1, macro_dim + 1))
+            plt.ylabel('macro dim')
+            plt.xlabel('micro dim')
+            plt.title(f'time_{i}')
+            plt.show()
         
         cg_mat[i] = u_col1
         

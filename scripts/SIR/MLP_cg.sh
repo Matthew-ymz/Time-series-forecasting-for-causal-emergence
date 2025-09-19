@@ -4,10 +4,10 @@ model_name=NN
 
 python -u run.py \
   --task_name coarse_graining \
-  --is_training 0 \
+  --is_training 1 \
   --root_path ./dataset/SIR/ \
   --data_path  train_7000_0.01.npy\
-  --model_id bs1 \
+  --model_id for_macro_dyn \
   --model $model_name \
   --data SIR \
   --c_in 4 \
@@ -16,7 +16,7 @@ python -u run.py \
   --d_model 256 \
   --MLP_layers 2 \
   --batch_size 1 \
-  --prints 400 \
+  --prints 1000 \
   --learning_rate 0.001 \
   --use_amp \
   --patience 5 \

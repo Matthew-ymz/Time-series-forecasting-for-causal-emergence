@@ -7,7 +7,7 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/SIR/ \
   --data_path macro_2.npy \
-  --model_id check_macro \
+  --model_id check_macro_cgfree \
   --model $model_name \
   --data SIR \
   --target stage \
