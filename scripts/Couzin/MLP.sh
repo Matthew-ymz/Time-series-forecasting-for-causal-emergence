@@ -7,7 +7,7 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/Couzin/ \
   --data_path couzin_simulation.csv \
-  --model_id twobird \
+  --model_id twobird_for_macro \
   --model $model_name \
   --data Couzin \
   --data_partition 0.7 0.2 0.1 \
@@ -16,8 +16,8 @@ python -u run.py \
   --seq_len 1 \
   --pred_len 1 \
   --downsample 1 \
-  --c_in 18 \
-  --c_out 18 \
+  --c_in 12 \
+  --c_out 12 \
   --des 'Exp' \
   --d_model 128 \
   --MLP_layers 1 \
@@ -30,6 +30,6 @@ python -u run.py \
   --lradj type0 \
   --jacobian \
   --jac_init 0 \
-  --jac_end 5000 \
-  --jac_interval 10 \
-  --cov_mean_num 5000 \
+  --jac_end 6000 \
+  --jac_interval 1 \
+  --cov_mean_num 6000 \

@@ -525,7 +525,7 @@ def main():
     global n_birds
     # 设置随机种子以确保可重现结果
     np.random.seed(42)
-    n_birds = 3
+    n_birds = 2
     #swarm
     params = SwarmParameters(
         number_of_fish=n_birds,
@@ -557,7 +557,7 @@ def main():
     simulation = CouzinSwarmSimulation(params)
     
     # 运行模拟
-    n_steps = 5000  
+    n_steps = 100  
     results_df = simulation.simulate(n_steps)
 
     
