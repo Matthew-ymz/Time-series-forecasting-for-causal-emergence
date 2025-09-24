@@ -139,41 +139,6 @@ def plot_singular(test_id_first, seed = 0, window='all', start=1, end=1000, inte
         plt.show()
 
     return singular, us, vts, mats, Sigs
-
-# def analysis_u(ss, us, seq_len, dims, start, end, interval, target=[0], space_only=False, windows='all', seed=0):
-#     if space_only:
-#         for i in range(start, end, interval):
-#             u = np.array(us[i])
-#             s = np.array(ss[i])[seed, :, :]
-#             u = u @ np.log(np.diag(s))
-#             u_col1 = u[seed, :, :]
-#             u_col1 = u_col1.reshape(seq_len,dims,-1)
-#             u_col1 = np.abs(u_col1)
-#             u_col1 = np.mean(u_col1, axis=0)
-#             plt.figure(dpi=100)
-#             if windows=='all':
-#                 sns.heatmap(u_col1.T)
-#             else:
-#                 sns.heatmap(u_col1.T[:windows,:])
-#             plt.ylabel('macro dim')
-#             plt.xlabel('micro dim')
-#             plt.title(str(i))
-#             plt.show()
-#             plt.close()
-#     else:
-#         for j in target:
-#             for i in range(start, end, interval):
-#                 u = np.array(us[i])
-#                 u_col1 = u[seed, :, j]
-#                 u_col1 = u_col1.reshape(seq_len,dims)
-#                 u_col1 = np.abs(u_col1)
-#                 plt.figure(dpi=100)
-#                 sns.heatmap(u_col1.T)
-#                 plt.ylabel('original dim')
-#                 plt.xlabel('time')
-#                 plt.title(str(i)+"_index={0}".format(j))
-#                 plt.show()
-#                 plt.close()
     
 def analysis_u(us, dims, start, end, interval, macro_dim, seq_len=1, abs_bool=False, mean_bool=False, show_bool=True):
     cg_mat = {}
@@ -232,6 +197,40 @@ def save_cg(cg_mat, micro_dims, macro_dims, micro_path, macro_path, one_serie=Tr
     np.save(macro_path, data_dict)
     return
 
+def save_macro(cg_mat, macro_dims, micro_path, macro_path, one_serie=True):
+    if one_serie:
+        macro_array = np.zeros([len(cg_mat.keys()), macro_dims])
+        micro_data = pd.read_csv(micro_path)
+        micro_data = micro_data.iloc[:, 1:].values
+        for i,cg_index in enumerate(list(cg_mat.keys())):
+            micro_data_one = micro_data[cg_index,:]
+            macro_data_one = cg_mat[cg_index] @ micro_data_one
+            macro_array[i, :] = macro_data_one
+        df_to_save = pd.DataFrame(macro_array)
+        df_to_save = df_to_save.reset_index()
+        df_to_save.to_csv(macro_path, index=False)
+        
+    else:
+        in_array = np.zeros([len(cg_mat.keys()), 1, macro_dims])
+        out_array = np.zeros([len(cg_mat.keys()), 1, macro_dims])
+        data = np.load(micro_path, allow_pickle=True)
+        data = data.item()
+        n = data['input'].shape[0]
+        data_array = data['input'].reshape(n, -1)  
+        for i,cg_index in enumerate(list(cg_mat.keys())):
+            micro_data = data_array[cg_index,:]
+            macro_data = cg_mat[cg_index] @ micro_data
+            in_array[i,0,:] = macro_data.reshape(1, 1, -1)
+        data_array = data['output'].reshape(n, -1)  
+        for i,cg_index in enumerate(list(cg_mat.keys())):
+            micro_data = data_array[cg_index,:]
+            macro_data = cg_mat[cg_index] @ micro_data
+            out_array[i,0,:] = macro_data.reshape(1, 1, -1)
+    
+        data_dict = {'input': in_array, 'output': out_array}
+        np.save(macro_path, data_dict)
+    return
+    
 def create_block_diagonal_matrix(matrix1, matrix2):
     if matrix1.ndim != 2 or matrix2.ndim != 2:
         raise ValueError("The input matrix must be two-dimensional.")

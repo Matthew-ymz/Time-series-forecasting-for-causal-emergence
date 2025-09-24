@@ -43,6 +43,13 @@ To implement a new model:
 ### 5. Dynamical Analysis
 Use the postprocessing folder to analyze the singular value spectrum, eigenvectors, and long-term evolution trajectories of the trained dynamics. The corresponding tools are available in `./postprocessing/svd_tool.py`
 
+Function Descriptions:
+`plot_singular`: Plots the singular value spectrum curves for different sample points.
+`analysis_u`: Outputs the retained feature vectors based on the selected truncation.
+`save_macro`: Calculates and stores the macroscopic states of samples according to the feature vectors.
+`save_cg`: Saves the coarse-graining relationships between macroscopic and microscopic states for the samples.
+`set_up`: Reconstructs the trained dynamical model based on the saved parameters, preparing for subsequent long-term dynamical evolution or causal graph analysis.
+
 ## Contact
 For inquiries or suggestions, contact:  
 **Mingzhe Yang**  
