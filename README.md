@@ -20,6 +20,12 @@ pip install -r requirements.txt
 ### 2. Data Preparation
 Prepare your dataset according to the required format.
 
+For simulated data, run the corresponding data generation code in the preprocessing folder.  Example usage:
+
+```bash
+python preprocessing/couzin_model_python-5.py 
+```
+
 ### 3. Model Training & Evaluation
 Experiment scripts for benchmarks are provided in `./scripts/`. Example usage:
 ```bash
@@ -33,6 +39,9 @@ To implement a new model:
 2. **Register Model**: Include the model in `Exp_Basic.model_dict` within `./exp/exp_basic.py`.
 3. **Create Script**: Add corresponding experiment scripts under `./scripts/`.
 
+
+### 5. Dynamical Analysis
+Use the postprocessing folder to analyze the singular value spectrum, eigenvectors, and long-term evolution trajectories of the trained dynamics. The corresponding tools are available in `./postprocessing/svd_tool.py`
 
 ## Contact
 For inquiries or suggestions, contact:  

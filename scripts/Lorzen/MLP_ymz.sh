@@ -28,8 +28,8 @@ nohup python -u run.py \
   --prints 100 \
   --learning_rate 0.001 \
   --patience 7 \
-  --itr 1 \
-  --train_epochs 15 \
+  --itr 2 \
+  --train_epochs 50 \
   --lradj type0 \
   --inverse \
   --jacobian \
@@ -37,6 +37,6 @@ nohup python -u run.py \
   --jac_end 10000 \
   --jac_interval 1000 \
   --cov_mean_num 10000 \
-  --save_model \
+  --save_model &
 
 
