@@ -1,5 +1,5 @@
 #export CUDA_VISIBLE_DEVICES=0
-  
+
 model_name=NN
 length=10000
 data_path="data_${length}_no_noise.csv"
@@ -19,23 +19,25 @@ nohup python -u run.py \
   --seq_len 1 \
   --pred_len 1 \
   --downsample 1 \
+  --gpu 0 \
   --c_in 6 \
   --c_out 6 \
   --des 'Exp' \
-  --d_model 256 \
-  --d_ff 512 \
-  --batch_size 128 \
-  --prints 10 \
+  --d_model 128 \
+  --MLP_layers 1 \
+  --batch_size 32 \
+  --prints 100 \
   --learning_rate 0.001 \
   --patience 7 \
   --itr 1 \
-  --train_epochs 15 \
-  --inverse \
+  --train_epochs 50 \
   --lradj type0 \
+  --inverse \
   --jacobian \
   --jac_init 0\
   --jac_end 10000 \
   --jac_interval 1000 \
-  --cov_mean_num 10000 &
+  --cov_mean_num 10000 \
+  --save_model &
 
 

@@ -28,7 +28,7 @@ nohup python -u run.py \
   --prints 100 \
   --learning_rate 0.001 \
   --patience 7 \
-  --itr 2 \
+  --itr 1 \
   --train_epochs 50 \
   --lradj type0 \
   --inverse \
