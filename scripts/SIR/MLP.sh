@@ -4,7 +4,7 @@ model_name=NN
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 1 \
+  --is_training 0 \
   --root_path ./dataset/SIR/ \
   --model_id for_macro_dyn \
   --model $model_name \
@@ -37,6 +37,6 @@ python -u run.py \
   --jac_init 0 \
   --jac_end 6000 \
   --jac_interval 1 \
-  --cov_mean_num 6000 \
+  --cov_mean_num 1 \
 
  
