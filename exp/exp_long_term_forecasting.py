@@ -319,6 +319,8 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                         jac_out = self.cal_jac(dec_inp, batch_x)
                         np.save(jacobian_path + f'jac_{store_time:04}.npy', jac_out)
                         if len(out_idx) == 1:
+                            print(f'inverse={self.args.inverse}')
+                            print(f'test_data.scale={test_data.scale}')
                             print(f'saving jacobian: jac_{store_time:04}.npy(size: {jac_out.dtype.itemsize * jac_out.size // 1024}KB); ')
 
                     if self.args.causal_net:
@@ -343,8 +345,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     gt = np.concatenate((input[0, :, si], true[0, :, si]), axis=0)
                     pd = np.concatenate((input[0, :, si], pred[0, :, si]), axis=0)
                     visual(gt, pd, os.path.join(folder_path, f'{store_time:04}.pdf'))
-                    if self.args.output_attention and attn is not None:
-                        print(f'saving fig: {store_time:04}.pdf')
 
         preds = np.array(preds)
         trues = np.array(trues)

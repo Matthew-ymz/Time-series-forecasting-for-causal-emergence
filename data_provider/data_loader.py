@@ -636,13 +636,14 @@ class Dataset_Lorzen(Dataset):
         cols_data = df_raw.columns[1:]
         df_data = df_raw[cols_data]
 
-        if self.scale:
-            train_data = df_data[border1s[0]:border2s[0]]
-            self.scaler.fit(train_data.values)
-            data = self.scaler.transform(df_data.values)
-        else:
-            data = df_data.values
-        
+        # if self.scale:
+        #     print(120*"-")
+        #     train_data = df_data[border1s[0]:border2s[0]]
+        #     self.scaler.fit(train_data.values)
+        #     data = self.scaler.transform(df_data.values)
+        # else:
+        #     data = df_data.values
+        data = df_data.values
         data_x = []
         step = self.downsample
         for i in range(step):

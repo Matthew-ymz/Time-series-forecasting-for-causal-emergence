@@ -8,6 +8,7 @@ data_dict = {
     'custom': Dataset_Ca2p,
     'SIR': SIRModel,
     'Couzin': Dataset_couzin,
+    'Spring': Dataset_couzin,
     'Kuramoto':KuramotoModel,
     'coarse_graining':Micro_to_Macro,
     'Lorzen':Dataset_Lorzen,
@@ -47,11 +48,13 @@ def data_provider(args, flag):
                 fold_loc=args.fold_loc,
                 seasonal_patterns=args.seasonal_patterns
             )
-        elif args.data == 'Couzin':
+        elif args.data == 'Couzin' or args.data == 'Spring':
             data_set = Data(
                 root_path=args.root_path,
                 data_path=args.data_path,
+                data_partition=args.data_partition,
                 flag=flag,
+                scale=args.data_scale,
                 size=[args.seq_len, args.pred_len],
                 downsample=args.downsample,
                 fold_loc=args.fold_loc,
@@ -87,6 +90,7 @@ def data_provider(args, flag):
                 use_cache = args.use_cache
             )
         elif args.data == 'Lorzen':
+            print(f'data_scale={args.data_scale}')
             data_set = Data(
                 root_path=args.root_path,
                 data_path=args.data_path,

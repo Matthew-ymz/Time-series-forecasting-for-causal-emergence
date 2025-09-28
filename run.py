@@ -105,9 +105,9 @@ if __name__ == '__main__':
     parser.add_argument('--activation', type=str, default='gelu', help='activation')
     parser.add_argument('--output_attention', action='store_true', help='whether to output attention in ecoder')
     parser.add_argument('--jacobian', action='store_true', help='whether to output jacobian matrix')
-    parser.add_argument('--jac_init', type=int, default=1000, help='start time of jacobian output')
-    parser.add_argument('--jac_end', type=int, default=2000, help='end time of jacobian output')
-    parser.add_argument('--jac_interval', type=int, default=30, help='interval time of jacobian output')
+    parser.add_argument('--jac_init', type=int, default=0, help='start time of jacobian output')
+    parser.add_argument('--jac_end', type=int, default=100, help='end time of jacobian output')
+    parser.add_argument('--jac_interval', type=int, default=1, help='interval time of jacobian output')
     parser.add_argument('--cov_mean_num', type=int, default=1, help='how many samples to mean cov matrix')
     parser.add_argument('--EI', action='store_true', help='whether to output EI')
     parser.add_argument('--causal_net', action='store_true', help='whether to output causal network by IG')
@@ -200,7 +200,7 @@ if __name__ == '__main__':
                 args.d_model,
                 args.MLP_layers,
                 ii)
-            elif args.data == "Couzin":
+            elif args.data == "Couzin" or args.data == "Spring":
                 if args.model == "NN":
                     setting = '{}_{}_{}_{}_sl{}_pl{}_dm{}_layer{}_floc{}_{}'.format(
                     args.task_name,
