@@ -587,7 +587,7 @@ class KuramotoModel(Dataset):
 
 class Dataset_Lorzen(Dataset):
     def __init__(self, root_path, flag='train', size=None,
-                 data_path='data_1000.csv', fold_loc='normal', data_partition = [0.7,0.1,0.2], scale=True, downsample=1):
+                 data_path='data_1000.csv', fold_loc='normal', data_partition = [0.7,0.1,0.2], scale=False, downsample=1):
 
         assert size != None, "You must specify the size of the dataset"
         self.seq_len = size[0]

@@ -92,6 +92,7 @@ def data_provider(args, flag):
                 data_path=args.data_path,
                 data_partition=args.data_partition,
                 flag=flag,
+                scale=args.data_scale,
                 size=[args.seq_len, args.pred_len],
                 downsample=args.downsample,
                 fold_loc=args.fold_loc,

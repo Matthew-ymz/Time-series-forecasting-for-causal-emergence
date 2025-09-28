@@ -37,6 +37,6 @@ python -u run.py \
   --jac_init 0 \
   --jac_end 6000 \
   --jac_interval 1 \
-  --cov_mean_num 1 \
+  --cov_mean_num 6000 \
 
  
