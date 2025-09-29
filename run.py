@@ -33,7 +33,7 @@ if __name__ == '__main__':
     parser.add_argument('--use_cache', type=bool, default=True, help='dataset cache used status')
     parser.add_argument('--root_path', type=str, default='./dataset/SIR/', help='root path of the data file')
     parser.add_argument('--data_path', type=str, default='ETTh1.csv', help='data file')
-    parser.add_argument('--data_scale', type=bool, default=False, help='standard transform for data')
+    parser.add_argument('--data_scale', action=argparse.BooleanOptionalAction, help='standard transform for data')
     # parser.add_argument('--features', type=str, default='M',
     #                     help='forecasting task, options:[M, S, MS]; M:multivariate predict multivariate, S:univariate predict univariate, MS:multivariate predict univariate')
     parser.add_argument('--features', type=int, nargs='+', default=[-1], help='list for predicted dims, -1 for all dims')

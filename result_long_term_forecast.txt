@@ -1456,3 +1456,27 @@ mse:0.0029931075405329466, mae:0.02858278714120388, rmse:0.0547093003988266, map
 long_term_forecast_check_ep50_NN_Spring_sl1_pl1_dm256_layer2_flocnormal_0  
 mse:0.0020615605171769857, mae:0.02449708804488182, rmse:0.04540441185235977, mape:0.08517646044492722, mspe:17.887540817260742
 
+long_term_forecast_datascaleF_ymz_no_noise_NN_Lorzen_ft-1_sl1_pl1_dm128_nh8_el2_dl1_df2048_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.003064879681915045, mae:0.035432253032922745, rmse:0.05536135658621788, mape:0.011880976147949696, mspe:0.03541615605354309
+
+long_term_forecast_datascaleF_ymz_no_noise_NN_Lorzen_ft-1_sl1_pl1_dm128_nh8_el2_dl1_df2048_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.003064879681915045, mae:0.035432253032922745, rmse:0.05536135658621788, mape:0.011880976147949696, mspe:0.03541615605354309
+
+long_term_forecast_datascaleF_ymz_no_noise_NN_Lorzen_ft-1_sl1_pl1_dm128_nh8_el2_dl1_df2048_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.003064879681915045, mae:0.035432253032922745, rmse:0.05536135658621788, mape:0.011880976147949696, mspe:0.03541615605354309
+
+long_term_forecast_datascaleF_ymz_no_noise_NN_Lorzen_ft-1_sl1_pl1_dm128_nh8_el2_dl1_df2048_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.003064879681915045, mae:0.035432253032922745, rmse:0.05536135658621788, mape:0.011880976147949696, mspe:0.03541615605354309
+
+long_term_forecast_datascaleF_ymz_no_noise_NN_Lorzen_ft-1_sl1_pl1_dm128_nh8_el2_dl1_df2048_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.003064879681915045, mae:0.035432253032922745, rmse:0.05536135658621788, mape:0.011880976147949696, mspe:0.03541615605354309
+
+long_term_forecast_datascaleF_ymz_no_noise_NN_Lorzen_ft-1_sl1_pl1_dm128_nh8_el2_dl1_df2048_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.003064879681915045, mae:0.035432253032922745, rmse:0.05536135658621788, mape:0.011880976147949696, mspe:0.03541615605354309
+
+long_term_forecast_datascaleF_ymz_no_noise_NN_Lorzen_ft-1_sl1_pl1_dm128_nh8_el2_dl1_df2048_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.003064879681915045, mae:0.035432253032922745, rmse:0.05536135658621788, mape:0.011880976147949696, mspe:0.03541615605354309
+
+long_term_forecast_datascaleF_ymz_no_noise_NN_Lorzen_ft-1_sl1_pl1_dm128_nh8_el2_dl1_df2048_fc1_flocnormal_dtTrue_Exp_0  
+mse:0.003064879681915045, mae:0.035432253032922745, rmse:0.05536135658621788, mape:0.011880976147949696, mspe:0.03541615605354309
+

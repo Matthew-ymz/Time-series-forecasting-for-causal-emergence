@@ -7,14 +7,13 @@ model_id="datascaleF_ymz_no_noise"
 
 python -u run.py \
   --task_name long_term_forecast \
-  --is_training 1 \
+  --is_training 0 \
   --root_path ./dataset/Lorzen/ \
   --data_path $data_path \
   --model_id $model_id \
   --model $model_name \
   --data Lorzen \
   --data_partition 0.8 0.1 0.1 \
-  --data_scale False \
   --fold_loc 'normal' \
   --target stage \
   --seq_len 1 \
@@ -34,9 +33,9 @@ python -u run.py \
   --lradj type0 \
   --jacobian \
   --jac_init 0\
-  --jac_end 10000 \
-  --jac_interval 1 \
-  --cov_mean_num 10000 \
-  --save_model 
+  # --jac_end 10000 \
+  # --jac_interval 1 \
+  # --cov_mean_num 10000 \
+  # --save_model 
 
 

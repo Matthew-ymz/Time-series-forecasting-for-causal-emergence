@@ -90,7 +90,6 @@ def data_provider(args, flag):
                 use_cache = args.use_cache
             )
         elif args.data == 'Lorzen':
-            print(f'data_scale={args.data_scale}')
             data_set = Data(
                 root_path=args.root_path,
                 data_path=args.data_path,
