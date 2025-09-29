@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore')
 
 
 class SIRModel(Dataset):
-    def __init__(self, path, data_path, size_list, beta, gamma, steps, dt, interval, sigma, rho, flag, use_cache=True):
+    def __init__(self, path, data_path, size_list, beta, gamma, steps, dt, interval, scale, sigma, rho, flag, use_cache=True):
         """
         Initialize the SIR model dataset.
         
@@ -38,7 +38,8 @@ class SIRModel(Dataset):
         self.data_path = data_path
         self.dt = dt
         self.interval = interval
-        self.scale = False
+        self.scale = scale
+        self.scaler = StandardScaler()
         self.init_total_number = np.sum(self.size_list)
 
         #self.data = self.simulate_multiseries(size_list)
@@ -137,6 +138,11 @@ class SIRModel(Dataset):
         """
         sir_input = sir_data_all[:, :-1, :].reshape(-1, 1, 4)
         sir_output = sir_data_all[:, 1:, :].reshape(-1, 1, 4)
+        if self.scale:
+            self.scaler.fit(sir_input)
+            sir_input = self.scaler.transform(sir_input)
+            sir_output = self.scaler.transform(sir_output)
+
         return sir_input, sir_output
 
     def __len__(self):

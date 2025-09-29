@@ -71,6 +71,7 @@ def data_provider(args, flag):
                 dt=args.dt,
                 flag=flag,
                 interval=args.downsample,
+                scale=args.data_scale,
                 sigma=args.sigma,
                 rho=args.rho,
                 use_cache=args.use_cache
