@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore')
 
 
 class SIRModel(Dataset):
-    def __init__(self, path, data_path, size_list, beta, gamma, steps, dt, interval, scale, sigma, rho, flag, use_cache=True):
+    def __init__(self, path, data_path, size_list, beta, gamma, steps, dt, interval, scale, sigma, rho, cg_type, flag, use_cache=True):
         """
         Initialize the SIR model dataset.
         
@@ -41,6 +41,8 @@ class SIRModel(Dataset):
         self.scale = scale
         self.scaler = StandardScaler()
         self.init_total_number = np.sum(self.size_list)
+        self.cg_type = cg_type
+        self.dims = 8
 
         #self.data = self.simulate_multiseries(size_list)
         self.prior = multivariate_normal(mean=np.zeros(2), cov=np.array([[1, rho], [rho, 1]]))
@@ -80,6 +82,32 @@ class SIRModel(Dataset):
         SI_obs = np.concatenate((S_obs0, I_obs0, S_obs1, I_obs1), 0)
         return SI_obs
     
+    def perturb_nolinear(self, S, I):
+        """
+        :param S: Susceptible population.
+        :param I: Infected population.
+        :return: Observed states.
+        """
+        # obs0 = np.expand_dims(S**2 + I**2, axis=0)
+        # obs1 = np.expand_dims(S**2 - I**2, axis=0)
+        # obs2 = np.expand_dims((S + I)**2, axis=0)
+        # obs3 = np.expand_dims((S - I)**2, axis=0)
+
+        # obs0 = np.expand_dims(np.exp(S), axis=0)
+        # obs1 = np.expand_dims(np.exp(I), axis=0)
+        # obs2 = np.expand_dims(np.exp(S + I), axis=0)
+        # obs3 = np.expand_dims(np.exp(S - I), axis=0)
+        obs0 = np.expand_dims(np.sin(S), axis=0)
+        obs1 = np.expand_dims(np.sin(I), axis=0)
+        obs2 = np.expand_dims(np.cos(S), axis=0)
+        obs3 = np.expand_dims(np.cos(I), axis=0)
+        obs4 = np.expand_dims(np.sin(S + I), axis=0)
+        obs5 = np.expand_dims(np.sin(S - I), axis=0)
+        obs6 = np.expand_dims(np.cos(S + I), axis=0)
+        obs7 = np.expand_dims(np.cos(S - I), axis=0)
+        SI_obs = np.concatenate((obs0, obs1, obs2, obs3, obs4, obs5, obs6, obs7), 0)
+        return SI_obs
+    
     def simulate_oneserie(self, S, I):
         """
         Simulate a single time series from a specific starting point.
@@ -91,7 +119,10 @@ class SIRModel(Dataset):
         sir_data = []
         for k in range(self.steps):
             if k % self.interval == 0:
-                SI_obs = self.perturb(S, I)
+                if self.cg_type == 0:
+                    SI_obs = self.perturb(S, I)
+                elif self.cg_type == 1:
+                    SI_obs = self.perturb_nolinear(S, I)
                 sir_data.append(SI_obs)
                 
             new_infected = self.beta * S * I 
@@ -107,12 +138,12 @@ class SIRModel(Dataset):
         :return: sir_input and sir_output arrays.
         """
         num_obs = int(self.steps / self.interval)
-        sir_data_all = np.zeros([self.init_total_number, num_obs, 4])
+        sir_data_all = np.zeros([self.init_total_number, num_obs, self.dims])
         num_strip = len(self.size_list)
         frac = 1 / num_strip
         
         for strip in range(num_strip):
-            sir_data_part = np.zeros([self.size_list[strip], num_obs, 4])
+            sir_data_part = np.zeros([self.size_list[strip], num_obs, self.dims])
             boundary_left = strip * frac
             boundary_right = boundary_left + frac
             S_init = np.random.uniform(boundary_left, boundary_right, self.size_list[strip])
@@ -136,8 +167,8 @@ class SIRModel(Dataset):
         :param sir_data_all: Array of all time series data.
         :return: sir_input and sir_output arrays.
         """
-        sir_input = sir_data_all[:, :-1, :].reshape(-1, 1, 4)
-        sir_output = sir_data_all[:, 1:, :].reshape(-1, 1, 4)
+        sir_input = sir_data_all[:, :-1, :].reshape(-1, 1, self.dims)
+        sir_output = sir_data_all[:, 1:, :].reshape(-1, 1, self.dims)
         if self.scale:
             self.scaler.fit(sir_input)
             sir_input = self.scaler.transform(sir_input)

@@ -74,6 +74,7 @@ def data_provider(args, flag):
                 scale=args.data_scale,
                 sigma=args.sigma,
                 rho=args.rho,
+                cg_type=args.no_linear,
                 use_cache=args.use_cache
             )
         elif args.data == "Kuramoto":

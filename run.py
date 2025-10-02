@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # data loader
     parser.add_argument('--data', type=str, required=True, default='SIR', help='dataset type')
     parser.add_argument('--downsample', type=int, default=1, help='dataset downsampling interval')
-    parser.add_argument('--use_cache', type=bool, default=True, help='dataset cache used status')
+    parser.add_argument('--use_cache', action='store_false', help='dataset cache used status', default=True)
     parser.add_argument('--root_path', type=str, default='./dataset/SIR/', help='root path of the data file')
     parser.add_argument('--data_path', type=str, default='ETTh1.csv', help='data file')
     parser.add_argument('--data_scale', action=argparse.BooleanOptionalAction, help='standard transform for data')
@@ -52,6 +52,7 @@ if __name__ == '__main__':
     parser.add_argument('--dt', type=float, default=0.01, help='dynamic dt for differential equations')
     parser.add_argument('--sigma', type=float,default=0.03, help='noise strength')
     parser.add_argument('--rho', type=float, default=-0.5, help='noise correlation param')
+    parser.add_argument('--no_linear', type=int, default=0, help='no linear coarse graining for sir')
 
     # data kuramoto
     parser.add_argument('--sz_kuramoto', type=int, default=32, help='dataset size for kuramoto. Its sum is the total number of the init points.')
