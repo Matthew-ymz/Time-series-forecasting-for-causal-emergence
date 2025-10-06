@@ -7,7 +7,7 @@ python -u run.py \
   --is_training 1 \
   --root_path ./dataset/Spring/ \
   --data_path macro_12.csv \
-  --model_id macro_dyn_seed42 \
+  --model_id macro_dyn_seed30 \
   --model $model_name \
   --data Spring \
   --data_partition 0.8 0.1 0.1 \

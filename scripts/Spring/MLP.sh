@@ -6,8 +6,8 @@ python -u run.py \
   --task_name long_term_forecast \
   --is_training 1 \
   --root_path ./dataset/Spring/ \
-  --data_path 6_group2_42.csv \
-  --model_id check_seed42 \
+  --data_path 6_group2_k0.csv \
+  --model_id check_k0 \
   --model $model_name \
   --data Spring \
   --data_partition 0.8 0.1 0.1 \

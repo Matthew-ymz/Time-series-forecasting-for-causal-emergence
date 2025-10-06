@@ -22,9 +22,6 @@ python -u run.py \
   --downsample 1 \
   --c_in 4 \
   --c_out 4 \
-  --enc_in 4 \  # 新增：编码器输入维度=4（与实际特征数一致）
-  --dec_in 4 \  # 新增：解码器输入维度=4（与实际特征数一致）
-  --features -1 \  # 显式指定使用所有特征（避免默认逻辑冲突）
   --des 'Exp' \
   --d_model 128 \
   --MLP_layers 1 \
