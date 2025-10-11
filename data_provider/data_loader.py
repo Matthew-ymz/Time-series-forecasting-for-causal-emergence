@@ -42,7 +42,7 @@ class SIRModel(Dataset):
         self.scaler = StandardScaler()
         self.init_total_number = np.sum(self.size_list)
         self.cg_type = cg_type
-        self.dims = 8
+        self.dims = 4
 
         #self.data = self.simulate_multiseries(size_list)
         self.prior = multivariate_normal(mean=np.zeros(2), cov=np.array([[1, rho], [rho, 1]]))
@@ -88,23 +88,23 @@ class SIRModel(Dataset):
         :param I: Infected population.
         :return: Observed states.
         """
-        # obs0 = np.expand_dims(S**2 + I**2, axis=0)
-        # obs1 = np.expand_dims(S**2 - I**2, axis=0)
-        # obs2 = np.expand_dims((S + I)**2, axis=0)
-        # obs3 = np.expand_dims((S - I)**2, axis=0)
+        obs0 = np.expand_dims(S**2 + I**2, axis=0)
+        obs1 = np.expand_dims(S**2 - I**2, axis=0)
+        obs2 = np.expand_dims((S + I)**2, axis=0)
+        obs3 = np.expand_dims((S - I)**2, axis=0)
 
         # obs0 = np.expand_dims(np.exp(S), axis=0)
         # obs1 = np.expand_dims(np.exp(I), axis=0)
         # obs2 = np.expand_dims(np.exp(S + I), axis=0)
         # obs3 = np.expand_dims(np.exp(S - I), axis=0)
-        obs0 = np.expand_dims(np.sin(S), axis=0)
-        obs1 = np.expand_dims(np.sin(I), axis=0)
-        obs2 = np.expand_dims(np.cos(S), axis=0)
-        obs3 = np.expand_dims(np.cos(I), axis=0)
-        obs4 = np.expand_dims(np.sin(S + I), axis=0)
-        obs5 = np.expand_dims(np.sin(S - I), axis=0)
-        obs6 = np.expand_dims(np.cos(S + I), axis=0)
-        obs7 = np.expand_dims(np.cos(S - I), axis=0)
+#         obs0 = np.expand_dims(np.sin(S), axis=0)
+#         obs1 = np.expand_dims(np.sin(I), axis=0)
+#         obs2 = np.expand_dims(np.cos(S), axis=0)
+#         obs3 = np.expand_dims(np.cos(I), axis=0)
+#         obs4 = np.expand_dims(np.sin(S + I), axis=0)
+#         obs5 = np.expand_dims(np.sin(S - I), axis=0)
+#         obs6 = np.expand_dims(np.cos(S + I), axis=0)
+#         obs7 = np.expand_dims(np.cos(S - I), axis=0)
         SI_obs = np.concatenate((obs0, obs1, obs2, obs3, obs4, obs5, obs6, obs7), 0)
         return SI_obs
     
