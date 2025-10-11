@@ -6,7 +6,7 @@ python -u run.py \
   --task_name long_term_forecast \
   --is_training 0 \
   --root_path ./dataset/SIR/ \
-  --model_id for_macro_dyn \
+  --model_id show_zhs \
   --model $model_name \
   --data SIR \
   --size_list 1000 \
